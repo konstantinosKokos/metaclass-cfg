@@ -1,0 +1,1 @@
+A silly metaclass-based library for generating CFG trees in python. 
