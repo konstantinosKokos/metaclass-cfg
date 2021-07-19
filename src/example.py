@@ -1,4 +1,4 @@
-from cfg import CategoryMeta, Grammar
+from .cfg import CategoryMeta, Grammar
 
 # Define categories
 N_sg_n, N_sg_g, N_pl = CategoryMeta.from_list(['N_sg_n', 'N_sg_g', 'N_pl'])
