@@ -27,22 +27,22 @@ class CategoryMeta(type):
         return [CategoryMeta.__new__(mcs, name) for name in names]
 
 
-AbsTree = Union[CategoryMeta, tuple['Tree', ...]]
-SynTree = Union[Category, tuple['SynTree', ...]]
+AbsTree = Union[CategoryMeta,   tuple[CategoryMeta, tuple['AbsTree', ...]]]
+SynTree = Union[Category,       tuple[CategoryMeta, tuple['SynTree', ...]]]
 
 
 def realizable(tree: AbsTree) -> bool:
     if isinstance(tree, CategoryMeta):
         return len(tree.constants) > 0
     if isinstance(tree, tuple):
-        return all(map(realizable, tree))
+        return all(map(realizable, tree[1]))
 
 
 def realize_tree(tree: AbsTree) -> list[SynTree]:
     if isinstance(tree, CategoryMeta):
         return tree.constants
-    options = tuple(map(realize_tree, tree))
-    return list(product(*options))
+    options = tuple(map(realize_tree, tree[1]))
+    return [(tree[0], opt) for opt in product(*options)]
 
 
 def realize_trees(trees: list[AbsTree]) -> list[SynTree]:
@@ -52,7 +52,7 @@ def realize_trees(trees: list[AbsTree]) -> list[SynTree]:
 def surface_tree(tree: SynTree) -> str:
     if isinstance(tree, Category):
         return tree.surface
-    return ' '.join(tuple(map(surface_tree, tree)))
+    return ' '.join(tuple(map(surface_tree, tree[1])))
 
 
 Rules = tuple[CategoryMeta, list[tuple[CategoryMeta, ...]]]
@@ -63,7 +63,7 @@ class Grammar:
     rules: list[Rules]
 
     def generate(self, goal: CategoryMeta, depth: int, return_empty: bool = True) -> list[AbsTree]:
-        trees = self.induction([(goal,)], depth + 1)
+        trees = self.induction([goal], depth + 1)
         return trees if return_empty else list(filter(realizable, trees))
 
     def induction(self, options: list[AbsTree], depth: int) -> list[AbsTree]:
@@ -76,9 +76,10 @@ class Grammar:
 
     def expand_tree(self, tree: AbsTree) -> list[AbsTree]:
         if isinstance(tree, CategoryMeta):
-            return self.expand_category(tree)
-        branch_options = tuple(map(lambda branch: self.expand_tree(branch) + [branch], tree))
-        return [p for p in product(*branch_options) if p != tree]
+            return [(tree, rhs) for rhs in self.expand_category(tree)]
+        branch_options = tuple(map(lambda branch: self.expand_tree(branch) + [branch], tree[1]))
+        ret = [(tree[0], p) for p in product(*branch_options)]
+        return [r for r in ret if r != tree]
 
     def expand_options(self, options: list[AbsTree]) -> list[AbsTree]:
         return [expand for option in options for expand in self.expand_tree(option)]
