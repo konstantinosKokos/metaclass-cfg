@@ -1,6 +1,6 @@
-from mcfg.mcfg import Category, CategoryMeta, Rule, Grammar, realize_trees
-from mcfg.example_utils import get_nouns, simple_concat, simple_flatten
-from mcfg.mcfg import realize_surface, realize_span
+from src.mcfg import Category, CategoryMeta, Rule, Grammar, realize_trees
+from src.example_utils import get_nouns, simple_concat, simple_flatten
+from src.mcfg import realize_surface, realize_span
 
 """
 Pseudo-code for the description of the grammar.
@@ -71,7 +71,7 @@ INF_ctrl.constants = ['beloven', 'vragen', 'dwingen', 'garanderen']
 INF_tv.constants = [('het biertje', 'drinken'), ('een pizza', 'eten')]
 
 
-rules = LexRule.from_list([
+rules = Rule.from_list([
         (S, (CTRL,), simple_concat(S), simple_flatten),
         (CTRL, (NP_s, TV_ctrl, NP_o, VC), simple_concat(CTRL), simple_flatten),
         (VC, (TE, INF),  simple_concat(VC), simple_flatten),
@@ -83,25 +83,14 @@ rules = LexRule.from_list([
         # (NP_o, (ADJ, NP_o), simple_concat(NP_o), simple_flatten)
     ])
 
-COMP_VERB.constants = [('eet', 'op')]
 
-S -> NP_s COMP_VERB NP_o
-
-lambda np_s, c_verb, np_o: np_s[0] + c_verb[0] + np_o[0] + c_verb[1]
-lambda np_s, c_verb, np_o: np_s[0] + c_verb[0] + np_o[0] + c_verb[1]
-
-"de man eet een pizza op"
-[1, 1, 99, 2, 2, 99]
-
-abs_rules = [(S , (CTRL,)), ...]
-
-conc_rules = [(STRING, (STRING,)),
-              (STRING, STRING)]
-
-surface_imp = {(S , (CTRL,)): [simple_concat(S)]}
-
-LexRule -> AbsRule
-LexRule ->
+# abs_rules = [(S , (CTRL,)), ...]
+#
+# conc_rules = [(STRING, (STRING,)),
+#               (STRING, STRING)]
+#
+# surface_imp = {(S , (CTRL,)): [simple_concat(S)]}
+#
 
 grammar = Grammar(rules)
 trees = grammar.generate(S, 4, True)

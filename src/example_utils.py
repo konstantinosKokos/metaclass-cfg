@@ -1,7 +1,7 @@
 # Random selection of nouns
 import random
-from mcfg.nouns import all_nouns
-from mcfg.mcfg import Category, CategoryMeta
+from src.nouns import all_nouns
+from src.mcfg import Category, CategoryMeta
 
 random.shuffle(all_nouns)
 noun_gen = (n for n in all_nouns)

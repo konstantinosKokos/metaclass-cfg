@@ -1,5 +1,5 @@
-from mcfg.mcfg import Category, CategoryMeta, Rule, Grammar, realize_trees
-from mcfg.example_utils import get_nouns, simple_concat
+from src.mcfg import Category, CategoryMeta, Rule, Grammar, realize_trees
+from src.example_utils import get_nouns, simple_concat
 
 """
 Pseudo-code for the description of the grammar.
