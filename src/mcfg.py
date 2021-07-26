@@ -1,4 +1,4 @@
-from typing import Union, Callable
+from typing import Union, TypeVar
 from dataclasses import dataclass
 from itertools import product
 
@@ -39,6 +39,7 @@ class CategoryMeta(type):
         else:
             cls._constants = list(map(lambda val: cls(*val), values))
 
+
 @dataclass
 class AbsRule:
     lhs:            CategoryMeta
@@ -55,7 +56,9 @@ class AbsRule:
         return list(map(lambda s: cls(*s), signatures))
 
 
-AbsTree = Union[CategoryMeta, tuple[CategoryMeta, tuple['AbsTree', ...]]]
+T = TypeVar('T')
+Tree = Union[T, tuple[T, tuple['Tree', ...]]]
+AbsTree = Tree[CategoryMeta]
 
 
 def realizable(tree: AbsTree) -> bool:
@@ -66,7 +69,7 @@ def realizable(tree: AbsTree) -> bool:
 
 
 @dataclass
-class Grammar:
+class AbsGrammar:
     rules:          list[AbsRule]
     multiplicity:   int
 
