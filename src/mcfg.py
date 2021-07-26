@@ -97,6 +97,3 @@ class AbsGrammar:
 
     def applicable(self, goal: CategoryMeta) -> list[AbsRule]:
         return [rule for rule in self.rules if rule.lhs == goal]
-
-
-# that is worth it
