@@ -94,16 +94,4 @@ class Grammar:
         return [rule for rule in self.rules if rule.lhs == goal]
 
 
-
-# def realize(tree: AbsTree) -> list[Category]:
-#     if isinstance(tree, CategoryMeta):
-#         return tree.constants
-#     if isinstance(tree, tuple):
-#         _, op, children = tree
-#         return list(map(lambda cs: op(*cs), product(*map(realize, children))))
-# #
-#
-# def realize_trees(trees: list[AbsTree]) -> list[Category]:
-#     return [real for tree in trees for real in realize(tree)]
-#
-#
+# that is worth it
