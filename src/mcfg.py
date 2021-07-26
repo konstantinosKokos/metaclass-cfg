@@ -55,6 +55,8 @@ class AbsRule:
     def from_list(cls, signatures: list[tuple[CategoryMeta, tuple[CategoryMeta, ...]]]):
         return list(map(lambda s: cls(*s), signatures))
 
+    def __hash__(self):
+        return hash(str(self.lhs) + str(self.rhs))
 
 T = TypeVar('T')
 Tree = Union[T, tuple[T, tuple['Tree', ...]]]
