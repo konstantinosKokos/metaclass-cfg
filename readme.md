@@ -1,1 +1,1 @@
-A silly metaclass-based library for generating CFG trees in python. 
+A silly metaclass-based library for generating (m-)CFG abstract trees in python. 
