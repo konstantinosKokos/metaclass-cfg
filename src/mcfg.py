@@ -37,22 +37,23 @@ class CategoryMeta(type):
         cls._constants = list(map(cls, values))
 
 
-Implementation = Callable[[tuple[Category, ...]], Category]
-
-
 @dataclass
-class Rule:
+class AbsRule:
     lhs:            CategoryMeta
     rhs:            tuple[CategoryMeta, ...]
-    op:             Implementation
+    multiplicity:   int
+
+    def __init__(self, lhs: CategoryMeta, rhs: tuple[CategoryMeta, ...]):
+        self.lhs = lhs
+        self.rhs = rhs
+        self.multiplicity = max(map(lambda cm: cm.arity, rhs))
 
     @classmethod
-    def from_list(cls, args: list[tuple[CategoryMeta, tuple[CategoryMeta, ...], Implementation]]) -> list['Rule']:
-        return [cls(*arg) for arg in args]
+    def from_list(cls, signatures: list[tuple[CategoryMeta, tuple[CategoryMeta, ...]]]):
+        return list(map(lambda s: cls(*s), signatures))
 
 
-AbsTree = Union[CategoryMeta,
-                tuple[CategoryMeta, Implementation, tuple['AbsTree', ...]]]
+AbsTree = Union[CategoryMeta, tuple[CategoryMeta, tuple['AbsTree', ...]]]
 
 
 def realizable(tree: AbsTree) -> bool:
@@ -62,21 +63,14 @@ def realizable(tree: AbsTree) -> bool:
         return all(map(realizable, tree[-1]))
 
 
-def realize(tree: AbsTree) -> list[Category]:
-    if isinstance(tree, CategoryMeta):
-        return tree.constants
-    if isinstance(tree, tuple):
-        _, op, children = tree
-        return list(map(lambda cs: op(*cs), product(*map(realize, children))))
-
-
-def realize_trees(trees: list[AbsTree]) -> list[Category]:
-    return [real for tree in trees for real in realize(tree)]
-
-
 @dataclass
 class Grammar:
-    rules:  list[Rule]
+    rules:          list[AbsRule]
+    multiplicity:   int
+
+    def __init__(self, rules: list[AbsRule]):
+        self.rules = rules
+        self.multiplicity = max(map(lambda rule: rule.multiplicity, rules))
 
     def generate(self, goal: CategoryMeta, depth: int, filter_empty: bool = True):
         ret = self.induction([goal], depth + 1)
@@ -90,11 +84,26 @@ class Grammar:
 
     def expand_tree(self, tree: AbsTree) -> list[AbsTree]:
         if isinstance(tree, CategoryMeta):
-            return [(rule.lhs, rule.op, rule.rhs) for rule in self.applicable(tree)]
-        top, op, children = tree
+            return [(rule.lhs, rule.rhs) for rule in self.applicable(tree)]
+        top, children = tree
         branch_options = tuple(map(lambda branch: self.expand_tree(branch) + [branch], children))
-        rs = [(top, op, prod) for prod in product(*branch_options)]
+        rs = [(top, prod) for prod in product(*branch_options)]
         return [r for r in rs if r != tree]
 
-    def applicable(self, goal: CategoryMeta) -> list[Rule]:
+    def applicable(self, goal: CategoryMeta) -> list[AbsRule]:
         return [rule for rule in self.rules if rule.lhs == goal]
+
+
+
+# def realize(tree: AbsTree) -> list[Category]:
+#     if isinstance(tree, CategoryMeta):
+#         return tree.constants
+#     if isinstance(tree, tuple):
+#         _, op, children = tree
+#         return list(map(lambda cs: op(*cs), product(*map(realize, children))))
+# #
+#
+# def realize_trees(trees: list[AbsTree]) -> list[Category]:
+#     return [real for tree in trees for real in realize(tree)]
+#
+#
