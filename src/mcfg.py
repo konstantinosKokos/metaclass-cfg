@@ -34,8 +34,10 @@ class CategoryMeta(type):
 
     @constants.setter
     def constants(cls, values: list[tuple[str, ...]]):
-        cls._constants = list(map(cls, values))
-
+        if isinstance(values[0], str):
+            cls._constants = list(map(cls, values))
+        else:
+            cls._constants = list(map(lambda val: cls(*val), values))
 
 @dataclass
 class AbsRule:
