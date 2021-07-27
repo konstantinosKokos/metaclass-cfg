@@ -141,6 +141,4 @@ labtree = abstree_to_labeledtree(abstree, set([NP_s, NP_o, NP_o2]),
                                  set([TV_su_ctrl, TV_obj_ctrl, ITV_inf,INF_ctrl, REL_su_VERB, REL_obj_VERB,INF_tv]),
                                  (n for n in range(1,20)),
                                  (n for n in range(1,20)))
-
-
-# verbreltree = labeledtree_to_verbreltree(labtree, None, None, span_rules, span_constants)
+verbreltree = labeledtree_to_verbreltree(labtree, None, None, span_rules, span_constants)

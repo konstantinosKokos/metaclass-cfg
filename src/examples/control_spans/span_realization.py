@@ -10,6 +10,18 @@ LabeledTree = Tree[LabeledNode]
 VerbRelNode = tuple[Maybe[tuple[int, int]], CategoryMeta]
 VerbRelTree = Tree[VerbRelNode]
 
+# (<class 'src.mcfg.S'>,
+#  ((<class 'src.mcfg.CTRL'>,
+#    ((<class 'src.mcfg.NP_s'>,
+#      (<class 'src.mcfg.NP_s'>,
+#       <class 'src.mcfg.DIE'>,
+#       <class 'src.mcfg.NP_o'>,
+#       <class 'src.mcfg.REL_su_VERB'>)),
+#     <class 'src.mcfg.TV_su_ctrl'>,
+#     <class 'src.mcfg.NP_o'>,
+#     (<class 'src.mcfg.VC'>,
+#      (<class 'src.mcfg.INF_tv'>, <class 'src.mcfg.TE'>)))),))
+
 # ((None, None, <class 'src.mcfg.S'>),
 #  (((None, None, <class 'src.mcfg.CTRL'>),
 #    (((1, None, <class 'src.mcfg.NP_s'>),
@@ -106,3 +118,10 @@ def labeledtree_to_verbreltree(tree: LabeledTree, subj_idx: Maybe[int], obj_idx:
 #         parent, children = tree
 #         return node_map(parent), tuple(map(lambda c: fmap_depthfirst(c, node_map), children))
 #
+
+def extract_verb_rels(tree: VerbRelTree) -> list[tuple[int, int]]:
+    # A VerbRelTree always has length 2
+    if isinstance(tree[1], CategoryMeta):
+        return [tree[0]] if tree[0] not is None else []
+    if isinstance(tree[1], tuple):
+        pass
