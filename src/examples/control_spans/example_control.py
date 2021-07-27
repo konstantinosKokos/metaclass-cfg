@@ -1,5 +1,5 @@
 from ...mcfg import CategoryMeta, AbsRule, AbsGrammar
-from .span_realization import abstree_to_labeledtree, get_matchings
+from .span_realization import abstree_to_labeledtree, labeledtree_to_surface, get_matchings
 from pprint import pprint
 
 """
@@ -86,7 +86,8 @@ def default_concat(*args):
 
 annotated_rules = [
         ((S,            (CTRL,)),
-         (dict(),       (False,))),
+         (dict(),       (False,)),
+         ([(0, 0)],)),
         ((CTRL,         (NP_s, TV_su_ctrl, NP_o, VC)),
          ({1: 0},       (False, False, False, 0)),
          ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
@@ -97,17 +98,23 @@ annotated_rules = [
          (dict(),       (False, True)),
          ([(0, 0), (1, 0)],)),
         ((INF,          (ITV_inf,)),
-         ({0: None},    (False,))),
+         ({0: None},    (False,)),
+         ([(0, 0)],)),
         ((VC,           (INF_tv, TE)),
-         ({0: None},    (False, False))),
+         ({0: None},    (False, False)),
+         ([(0, 0), (1, 0), (0, 1)],)),
         ((VC,           (NP_o2, TE, INF_su_ctrl, VC)),
-         ({2: None},    (False, False, False, True))),
+         ({2: None},    (False, False, False, True)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
         ((VC,           (NP_o2, TE, INF_obj_ctrl, VC)),
-         ({2: None},    (False, False, False, 0))),
+         ({2: None},    (False, False, False, 0)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
         ((NP_s,         (NP_s, DIE, NP_o, REL_su_VERB)),
-         ({3: 0},       (False, False, False, False))),
+         ({3: 0},       (False, False, False, False)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
         ((NP_s,         (NP_s, DIE, NP_o, REL_obj_VERB)),
-         ({3: 2},       (False, False, False, False)))
+         ({3: 2},       (False, False, False, False)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0)],))
 ]
 
 
@@ -118,10 +125,17 @@ grammar = AbsGrammar(rules)
 trees = grammar.generate(S, 4, True)
 
 
-matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule) in annotated_rules}
+matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
+surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
 
 n_candidates = {NP_s, NP_o, NP_o2}
 v_candidates = {TV_su_ctrl, TV_obj_ctrl, ITV_inf, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB, REL_obj_VERB, INF_tv}
 
-labeled_tree = abstree_to_labeledtree(trees[0], n_candidates, v_candidates, iter(range(999)), iter(range(999)))
+abstree = trees[0]
+labeled_tree = abstree_to_labeledtree(abstree, n_candidates, v_candidates, iter(range(999)), iter(range(999)))
 matchings = get_matchings(labeled_tree, matching_rules)
+
+subtree = labeled_tree[1][0][1][0]
+from itertools import product
+
+# surfaces = labeledtree_to_surface(labeled_tree, surf_rules, [], [])

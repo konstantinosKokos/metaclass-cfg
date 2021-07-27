@@ -1,7 +1,7 @@
-from ...mcfg import CategoryMeta, Tree, AbsTree, AbsRule
+from ...mcfg import Category, CategoryMeta, Tree, AbsTree, AbsRule
 from typing import Union, Iterator
 from typing import Optional as Maybe
-
+from itertools import product
 
 LabeledNode = tuple[Maybe[int], Maybe[int],  CategoryMeta]
 LabeledTree = Tree[LabeledNode]
@@ -33,7 +33,7 @@ def get_top(_tree: LabeledTree) -> LabeledNode:
     return _tree if len(_tree) == 3 else _tree[0]
 
 
-def get_rule(category: CategoryMeta, children: tuple[LabeledTree, ...]) -> AbsRule
+def get_rule(category: CategoryMeta, children: tuple[LabeledTree, ...]) -> AbsRule:
     children_categories = tuple(map(lambda c: get_top(c)[-1], children))
     return AbsRule(category, children_categories)
 
@@ -54,26 +54,64 @@ def get_matchings(tree: LabeledTree, matching_rules: MatchingRule, inheritance: 
     return ret
 
 
+# ((None, None, <class 'src.mcfg.S'>),
+#  (((None, None, <class 'src.mcfg.CTRL'>),
+#    (((0, None, <class 'src.mcfg.NP_s'>),
+#      ((1, None, <class 'src.mcfg.NP_s'>),
+#       (None, None, <class 'src.mcfg.DIE'>),
+#       (2, None, <class 'src.mcfg.NP_o'>),
+#       (None, 0, <class 'src.mcfg.REL_su_VERB'>))),
+#     (None, 1, <class 'src.mcfg.TV_su_ctrl'>),
+#     (3, None, <class 'src.mcfg.NP_o'>),
+#     ((None, None, <class 'src.mcfg.VC'>),
+#      ((None, 2, <class 'src.mcfg.INF_tv'>),
+#       (None, None, <class 'src.mcfg.TE'>))))),))
+
+# {1: 0, 0: 1, 2: 0}
+
+
+SpanSurface = tuple[list[list[int]], list[list[int]], list[list[str]]]
+
+# A yield is a tuple (the arity) of results, each of which encodes one of the resulting elements in the tuple.
+# Each element contains the NP spans, VP spans, and a list of concrete surface forms.
+# Each NP Span object is a list of lists of int, indicating that at each position of a surface form, it belongs to a
+# number of NP's. Likewise, each position in the surface form (note that this in itself could contain multiple words)
+# belongs to a number of VP's. The list of concrete surface forms is a list of options for concrete forms, where each
+# form is a list of strings (each of which has a surface string which we later use to generate actual spans).
+# Note: we use str instead of Category because we require the actual string tuples, which are hidden in the surface of
+# each category.
+# NPSpan = list[list[int]]
+# VPSpan = list[list[int]]
+# SurfaceSpan = list[list[str]]
+# Yield = tuple[tuple[NPSpan, VPSpan, SurfaceSpan]]
+# Example: NP_s has a list of three constants, and arity one, so output is
+# (([[0, 1]], [[]] , [[NP_s(de man), NP_s(de vrouw), NP_s(het kind)]]),)
+# Example 2: For a VP -> NP Verb it would be
+# (([[0, 1], []], [[], [1]] , [[NP_s(de man), NP_s(de vrouw), NP_s(het kind)], [V(ziet), V(hoort)]]),)
+# Example 3: For a INF_tv with pairs of constants [('bier', 'drinken'), ('pizza', 'eten')] we should get
+# (([[0, 1]] , [[]] , [['bier', 'pizza']]), ([[]], [[1]] , [['drinken', 'eten']]))
 def labeledtree_to_surface(
         tree: LabeledTree, surface_rules: SurfaceRule, np_labels: list[int], vp_labels: list[int]) \
-            -> list[tuple[tuple[list[int], list[int]], CategoryMeta]]:
-    # todo.
-
+            -> SpanSurface:
     def add_to_inheritance(_inheritance: list[int], new_idx: Maybe[int]) -> list[int]:
         return _inheritance if new_idx is None else _inheritance + [new_idx]
 
     if len(tree) == 3:
         np_idx, vp_idx, category = tree
-        return [(add_to_inheritance(np_labels, np_idx), add_to_inheritance(vp_labels, vp_idx), category)]
+        _np_labels, _vp_labels = [[add_to_inheritance(np_labels, np_idx)]], [[add_to_inheritance(vp_labels, vp_idx)]]
+        return tuple(map(lambda surf_options: (_np_labels, _vp_labels, [list(surf_options)]), zip(*category.constants)))
+
     (np_idx, vp_idx, category), children = tree
     np_labels = add_to_inheritance(np_labels, np_idx)
     vp_labels = add_to_inheritance(vp_labels, vp_idx)
     abs_rule = get_rule(category, children)
-    surf_rule = surface_rules[abs_rule]
-    # fucked up shit
+    surf_rule: tuple[list[tuple[int, int]]] = surface_rules[abs_rule]
     children_labels = tuple(map(lambda c: labeledtree_to_surface(c, surface_rules, np_labels, vp_labels), children))
-    ret = [[] for _ in len(surf_rule)]
-    for result_crd in surf_rule:
-        for child_id, child_crd in result_crd:
-            ret.extend(children_labels[child_id])
-    # for child_np_labels, child_vp_labels, child_categories in children_labels:
+
+    def construct_surface_el(el: list[tuple[int, int]]) -> tuple[list[list[int]], list[list[int]], list[list[str]]]:
+        span_surfs = list(zip(*[children_labels[c_idx][c_coord] for c_idx, c_coord in el]))
+        return sum(span_surfs[0], []), sum(span_surfs[1], []), sum(span_surfs[2], [])
+
+    return tuple(map(construct_surface_el, surf_rule))
+
+
