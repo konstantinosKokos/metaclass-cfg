@@ -50,7 +50,8 @@ NP_inf = CategoryMeta('NP_inf')
 
 TV_su_ctrl = CategoryMeta('TV_su_ctrl')
 TV_obj_ctrl = CategoryMeta('TV_obj_ctrl')
-INF_ctrl = CategoryMeta('INF_ctrl')
+INF_su_ctrl = CategoryMeta('INF_su_ctrl')
+INF_obj_ctrl = CategoryMeta('INF_obj_ctrl')
 ITV_inf = CategoryMeta('ITV_inf')
 TV_inf = CategoryMeta('TV_inf')
 DIE = CategoryMeta('DIE')
@@ -70,7 +71,8 @@ TV_inf.constants = ['drinken', 'eten']
 
 TV_su_ctrl.constants = ['belooft', 'garandeert']
 TV_obj_ctrl.constants = ['vraagt', 'dwingt']
-INF_ctrl.constants = ['beloven', 'vragen', 'dwingen', 'garanderen']
+INF_su_ctrl.constants = ['beloven', 'garanderen']
+INF_obj_ctrl.constants = ['vragen', 'dwingen']
 
 INF_tv.constants = [('het biertje', 'drinken'), ('een pizza', 'eten')]
 DIE.constants = ['die']
@@ -116,17 +118,10 @@ grammar = AbsGrammar(rules)
 trees = grammar.generate(S, 4, True)
 
 
-span_rules = {AbsRule(lhs, rhs): lam for ((lhs, rhs), lam) in annotated_rules}
+matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule) in annotated_rules}
 
-span_constants = {TV_su_ctrl: fst, TV_obj_ctrl: snd,
-                  ITV_inf: fst, INF_ctrl: fst, REL_su_VERB: fst,
-                  REL_obj_VERB: snd, INF_tv: fst}
+n_candidates = {NP_s, NP_o, NP_o2}
+v_candidates = {TV_su_ctrl, TV_obj_ctrl, ITV_inf, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB, REL_obj_VERB, INF_tv}
 
-from ..control_spans.span_realization import abstree_to_labeledtree, labeledtree_to_verbreltree, get_rule
-from pprint import pprint
-abstree = trees[0]
-labtree = abstree_to_labeledtree(abstree, set([NP_s, NP_o, NP_o2]),
-                                 set([TV_su_ctrl, TV_obj_ctrl, ITV_inf,INF_ctrl, REL_su_VERB, REL_obj_VERB,INF_tv]),
-                                 (n for n in range(1,20)),
-                                 (n for n in range(1,20)))
-verbreltree = labeledtree_to_verbreltree(labtree, None, None, span_rules, span_constants)
+labeled_tree = abstree_to_labeledtree(trees[0], n_candidates, v_candidates, iter(range(999)), iter(range(999)))
+matchings = get_matchings(labeled_tree, matching_rules)

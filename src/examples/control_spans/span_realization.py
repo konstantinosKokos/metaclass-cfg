@@ -54,54 +54,26 @@ def get_matchings(tree: LabeledTree, matching_rules: MatchingRule, inheritance: 
     return ret
 
 
+def labeledtree_to_surface(
+        tree: LabeledTree, surface_rules: SurfaceRule, np_labels: list[int], vp_labels: list[int]) \
+            -> list[tuple[tuple[list[int], list[int]], CategoryMeta]]:
+    # todo.
 
+    def add_to_inheritance(_inheritance: list[int], new_idx: Maybe[int]) -> list[int]:
+        return _inheritance if new_idx is None else _inheritance + [new_idx]
 
-def get_rule(tree: LabeledTree) -> Union[CategoryMeta, AbsRule]:
-    # if isinstance(tree, CategoryMeta):
     if len(tree) == 3:
-        return tree[2]
-    # if isinstance(tree, tuple):
-    if len(tree) == 2:
-        parent, children = tree
-        return AbsRule(parent[2], tuple([get_top(c)[2] for c in children]))
-
-
-
-
-def labeledtree_to_verbreltree(tree: LabeledTree, subj_idx: Maybe[int], obj_idx: Maybe[int],
-                               span_rules, span_constants) -> VerbRelTree:
-    def _f(_tree: LabeledTree, _su_idx, _obj_idx):
-        return labeledtree_to_verbreltree(_tree, _su_idx, _obj_idx, span_rules, span_constants)
-
-    def assign_id(node: LabeledNode) -> VerbRelNode:
-        if node[1]:
-            return (node[1], span_constants[node[2]](subj_idx, obj_idx)), node[2]
-        else:
-            return None, node[2]
-
-    # if isinstance(tree, CategoryMeta):
-    if len(tree) == 3:
-        return assign_id(tree)
-    # if isinstance(tree, tuple):
-    if len(tree) == 2:
-        parent, children = tree
-        new_subj_idx, new_obj_idx = span_rules[get_rule(tree)](*children, subj_idx, obj_idx)
-        return assign_id(parent), tuple(map(lambda c: _f(c, new_subj_idx, new_obj_idx), children))
-
-
-
-
-# def fmap_depthfirst(tree: Tree, node_map) -> Tree:
-#     if isinstance(tree, Node):
-#         return node_map(tree)
-#     if isinstance(tree, tuple):
-#         parent, children = tree
-#         return node_map(parent), tuple(map(lambda c: fmap_depthfirst(c, node_map), children))
-#
-
-def extract_verb_rels(tree: VerbRelTree) -> list[tuple[int, int]]:
-    # A VerbRelTree always has length 2
-    if isinstance(tree[1], CategoryMeta):
-        return [tree[0]] if tree[0] not is None else []
-    if isinstance(tree[1], tuple):
-        pass
+        np_idx, vp_idx, category = tree
+        return [(add_to_inheritance(np_labels, np_idx), add_to_inheritance(vp_labels, vp_idx), category)]
+    (np_idx, vp_idx, category), children = tree
+    np_labels = add_to_inheritance(np_labels, np_idx)
+    vp_labels = add_to_inheritance(vp_labels, vp_idx)
+    abs_rule = get_rule(category, children)
+    surf_rule = surface_rules[abs_rule]
+    # fucked up shit
+    children_labels = tuple(map(lambda c: labeledtree_to_surface(c, surface_rules, np_labels, vp_labels), children))
+    ret = [[] for _ in len(surf_rule)]
+    for result_crd in surf_rule:
+        for child_id, child_crd in result_crd:
+            ret.extend(children_labels[child_id])
+    # for child_np_labels, child_vp_labels, child_categories in children_labels:
