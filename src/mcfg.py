@@ -8,7 +8,8 @@ class Category:
 
 
 class CategoryMeta(type):
-    _constants = []
+    arity:          int
+    _constants:     list[Category] = []
 
     def __new__(mcs, name: str, arity: int = 1) -> type:
         def _init(cls, *surface: str) -> None:
@@ -32,15 +33,12 @@ class CategoryMeta(type):
         super(CategoryMeta, cls).__init__(arity)
 
     @property
-    def constants(cls):
+    def constants(cls: 'CategoryMeta') -> list[Category]:
         return cls._constants
 
     @constants.setter
-    def constants(cls, values: list[tuple[str, ...]]):
-        if isinstance(values[0], str):
-            cls._constants = list(map(cls, values))
-        else:
-            cls._constants = list(map(lambda val: cls(*val), values))
+    def constants(cls, values: list[Union[str, tuple[str, ...]]]) -> None:
+        cls._constants = list(map(cls, values)) if cls.arity == 1 else list(map(lambda val: cls(*val), values))
 
 
 @dataclass(unsafe_hash=True)
