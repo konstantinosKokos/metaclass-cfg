@@ -11,19 +11,22 @@ class CategoryMeta(type):
     _constants = []
 
     def __new__(mcs, name: str, arity: int = 1) -> type:
-        def cls_init(cls, *surface: str) -> None:
+        def _init(cls, *surface: str) -> None:
             if len(surface) != arity:
-                raise TypeError(f'Cannot initialize {cls} of arity {arity} with an {len(surface)}-tuple.')
+                raise TypeError(f'Cannot initialize {mcs} of arity {arity} with an {len(surface)}-tuple.')
             cls.surface = surface
 
-        def cls_repr(cls) -> str:
+        def _repr(cls) -> str:
             return f'{name}(surface={str(cls.surface)})'
 
-        def cls_getitem(cls, idx: int) -> str:
+        def _getitem(cls, idx: int) -> str:
             return cls.surface[idx]
 
+        def _hash(cls) -> int:
+            return hash((name, arity))
+
         return super().__new__(mcs, name, (Category,), {
-            'arity': arity, '__init__': cls_init, '__repr__': cls_repr, '__getitem__': cls_getitem})
+            'arity': arity, '__init__': _init, '__repr__': _repr, '__getitem__': _getitem, '__hash__': _hash})
 
     def __init__(cls, _: str, arity: int = 1):
         super(CategoryMeta, cls).__init__(arity)
@@ -40,7 +43,7 @@ class CategoryMeta(type):
             cls._constants = list(map(lambda val: cls(*val), values))
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class AbsRule:
     lhs:            CategoryMeta
     rhs:            tuple[CategoryMeta, ...]
@@ -55,8 +58,6 @@ class AbsRule:
     def from_list(cls, signatures: list[tuple[CategoryMeta, tuple[CategoryMeta, ...]]]):
         return list(map(lambda s: cls(*s), signatures))
 
-    def __hash__(self):
-        return hash(str(self.lhs) + str(self.rhs))
 
 T = TypeVar('T')
 Tree = Union[T, tuple[T, tuple['Tree', ...]]]
