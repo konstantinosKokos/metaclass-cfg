@@ -1,5 +1,6 @@
 from ...mcfg import CategoryMeta, AbsRule, AbsGrammar
-from .span_realization import get_top
+from .span_realization import abstree_to_labeledtree, get_matchings
+from pprint import pprint
 
 """
 Pseudo-code for the description of the grammar.
@@ -77,56 +78,43 @@ DIE.constants = ['die']
 REL_su_VERB.constants = ['eet']
 REL_obj_VERB.constants = ['eet']
 
-# rules = AbsRule.from_list([
-#         (S, (CTRL,), simple_concat(S), simple_flatten),
-#         (CTRL, (NP_s, TV_ctrl, NP_o, VC), simple_concat(CTRL), simple_flatten),
-#         (VC, (TE, INF),  simple_concat(VC), simple_flatten),
-#         (INF, (ITV_inf,),  simple_concat(INF), simple_flatten),
-#         # (VC, (NP_inf, TE, TV_inf), simple_concat(INF), simple_flatten)
-#         (VC, (INF_tv, TE), lambda inf_tv, te: VC(f'{inf_tv[0]} {te[0]} {inf_tv[1]}'),
-#                            lambda inf_tv, te: (inf_tv[0] + te[0] + inf_tv[1],)),
-#         (VC, (NP_o2, TE, INF_ctrl, VC), simple_concat(VC), simple_flatten),
-#         # (NP_o, (ADJ, NP_o), simple_concat(NP_o), simple_flatten)
-#     ])
 
-default_annotation = lambda *args: tuple(args[-2:])
+def default_concat(*args):
+    return ' '.join(args)
 
 annotated_rules = [
-        ((S,         (CTRL,)), default_annotation),
-        ((CTRL,      (NP_s, TV_su_ctrl, NP_o, VC)), lambda np_s, tv, np_o, vc, su_idx, obj_idx: (get_top(np_s)[0], obj_idx)),
-        ((CTRL,      (NP_s, TV_obj_ctrl, NP_o, VC)),  lambda np_s, tv, np_o, vc, su_idx, obj_idx: (su_idx, get_top(np_o)[0])),
-        ((VC,        (TE, INF)), default_annotation),
-        ((INF,       (ITV_inf,)), default_annotation),
-        ((VC,        (INF_tv, TE)), default_annotation),
-        ((VC,        (NP_o2, TE, INF_ctrl, VC)), default_annotation),
-        ((NP_s,      (NP_s, DIE, NP_o, REL_su_VERB)), lambda np_s, die, np_o, verb, su_idx, obj_idx: (get_top(np_s)[0], obj_idx)),
-        ((NP_s,      (NP_s, DIE, NP_o, REL_obj_VERB)), lambda np_s, die, np_o, verb, su_idx, obj_idx: (su_idx, get_top(np_o)[0]))
+        ((S,            (CTRL,)),
+         (dict(),       (False,))),
+        ((CTRL,         (NP_s, TV_su_ctrl, NP_o, VC)),
+         ({1: 0},       (False, False, False, 0)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
+        ((CTRL,         (NP_s, TV_obj_ctrl, NP_o, VC)),
+         ({1: 0},       (False, False, False, 2)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
+        ((VC,           (TE, INF)),
+         (dict(),       (False, True)),
+         ([(0, 0), (1, 0)],)),
+        ((INF,          (ITV_inf,)),
+         ({0: None},    (False,))),
+        ((VC,           (INF_tv, TE)),
+         ({0: None},    (False, False))),
+        ((VC,           (NP_o2, TE, INF_su_ctrl, VC)),
+         ({2: None},    (False, False, False, True))),
+        ((VC,           (NP_o2, TE, INF_obj_ctrl, VC)),
+         ({2: None},    (False, False, False, 0))),
+        ((NP_s,         (NP_s, DIE, NP_o, REL_su_VERB)),
+         ({3: 0},       (False, False, False, False))),
+        ((NP_s,         (NP_s, DIE, NP_o, REL_obj_VERB)),
+         ({3: 2},       (False, False, False, False)))
 ]
 
+
 rules = AbsRule.from_list(list(zip(*annotated_rules))[0])
-# rules = AbsRule.from_list([
-#         (S,         (CTRL,)),
-#         (CTRL,      (NP_s, TV_su_ctrl, NP_o, VC)),
-#         (CTRL,      (NP_s, TV_obj_ctrl, NP_o, VC)),
-#         (VC,        (TE, INF)),
-#         (INF,       (ITV_inf,)),
-#         (VC,        (INF_tv, TE)),
-#         (VC,        (NP_o2, TE, INF_ctrl, VC)),
-#         (NP_s,      (NP_s, DIE, NP_o, REL_su_VERB)),
-#         (NP_s,      (NP_s, DIE, NP_o, REL_obj_VERB))
-#     ])
 
 
 grammar = AbsGrammar(rules)
 trees = grammar.generate(S, 4, True)
 
-
-def fst(x, y):
-        return x
-
-
-def snd(x, y):
-        return y
 
 span_rules = {AbsRule(lhs, rhs): lam for ((lhs, rhs), lam) in annotated_rules}
 
