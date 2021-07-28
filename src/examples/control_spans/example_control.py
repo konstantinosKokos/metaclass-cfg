@@ -137,5 +137,7 @@ matchings = get_matchings(labeled_tree, matching_rules)
 
 subtree = labeled_tree[1][0][1][0]
 from itertools import product
+from .span_realization import *
 
-# surfaces = labeledtree_to_surface(labeled_tree, surf_rules, [], [])
+surfaces = labeledtree_to_surface(labeled_tree, surf_rules, [], [])
+np_spans, vp_spans, surfs = surfaces[0]

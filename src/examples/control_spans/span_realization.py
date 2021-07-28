@@ -98,7 +98,7 @@ def labeledtree_to_surface(
 
     if len(tree) == 3:
         np_idx, vp_idx, category = tree
-        _np_labels, _vp_labels = [[add_to_inheritance(np_labels, np_idx)]], [[add_to_inheritance(vp_labels, vp_idx)]]
+        _np_labels, _vp_labels = [add_to_inheritance(np_labels, np_idx)], [add_to_inheritance(vp_labels, vp_idx)]
         return tuple(map(lambda surf_options: (_np_labels, _vp_labels, [list(surf_options)]), zip(*category.constants)))
 
     (np_idx, vp_idx, category), children = tree
@@ -115,3 +115,29 @@ def labeledtree_to_surface(
     return tuple(map(construct_surface_el, surf_rule))
 
 
+# functions that map a SpanSurface to concrete data for evaluation.
+def get_span(idx: int, surf: str) -> list[int]:
+    return len(surf.split()) * [idx]
+
+
+def get_span_ids(spans: list[list[int]]):
+    return set([n for s in spans for n in s])
+
+
+def span_surface_example_to_data(spans: list[list[int]], span_idx: int, surface: tuple[str]):
+    all_spans = []
+    for span, surf in zip(spans, surface):
+        cur_idx = span_idx if span_idx in span else None
+        cur_span = get_span(cur_idx, surf)
+        all_spans.append(cur_span)
+    return [n for s in all_spans for n in s]
+
+
+def span_surface_to_data(span_surf: SpanSurface, matchings: Matching, verb_idx: int):
+    np_spans, vp_spans, surfs = span_surf
+    surf_options = list(product(*surfs))
+    all_results = []
+    for surf_opt in surf_options:
+        result = [span_surface_example_to_data(np_spans, i, surf_opt) for i in get_span_ids(np_spans)], ' '.join(surf_opt)
+        all_results.append(result)
+    return all_results
