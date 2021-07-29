@@ -117,27 +117,10 @@ annotated_rules = [
          ([(0, 0), (1, 0), (2, 0), (3, 0)],))
 ]
 
-
-rules = AbsRule.from_list(list(zip(*annotated_rules))[0])
-
-
-grammar = AbsGrammar(rules)
-trees = grammar.generate(S, 4, True)
-
-
-matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
-surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
-
 n_candidates = {NP_s, NP_o, NP_o2}
 v_candidates = {TV_su_ctrl, TV_obj_ctrl, ITV_inf, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB, REL_obj_VERB, INF_tv}
 
-abstree = trees[0]
-labeled_tree = abstree_to_labeledtree(abstree, n_candidates, v_candidates, iter(range(999)), iter(range(999)))
-matchings = get_matchings(labeled_tree, matching_rules)
+grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
 
-subtree = labeled_tree[1][0][1][0]
-from itertools import product
-from .span_realization import *
-
-surfaces = labeledtree_to_surface(labeled_tree, surf_rules, [], [])
-np_spans, vp_spans, surfs = surfaces[0]
+matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
+surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}

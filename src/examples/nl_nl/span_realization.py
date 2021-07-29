@@ -26,9 +26,8 @@ def abstree_to_labeledtree(tree: AbsTree, n_candidates: set[CategoryMeta], v_can
 
     if isinstance(tree, CategoryMeta):
         return assign_node(tree)
-    if isinstance(tree, tuple):
-        parent, children = tree
-        return assign_node(parent), tuple(map(_f, children))
+    parent, children = tree
+    return assign_node(parent), tuple(map(_f, children))
 
 
 def get_top(_tree: LabeledTree) -> LabeledNode:
