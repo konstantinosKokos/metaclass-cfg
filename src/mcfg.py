@@ -6,6 +6,9 @@ from itertools import product
 class Category:
     ...
 
+    def __getitem__(self, item: int):
+        ...
+
 
 class CategoryMeta(type):
     arity:          int
