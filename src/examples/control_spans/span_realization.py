@@ -8,6 +8,8 @@ LabeledTree = Tree[LabeledNode]
 Matching = dict[int, int]
 MatchingRule = dict[AbsRule, tuple[dict[int, Maybe[int]], tuple[Union[bool, int], ...]]]
 SurfaceRule = dict[AbsRule, tuple[list[tuple[int, int]], ...]]
+SpanRealization = list[tuple[list[int], list[int], tuple[int, int]]]
+Realized = list[tuple[list[int], list[int], str]]
 
 
 def abstree_to_labeledtree(tree: AbsTree, n_candidates: set[CategoryMeta], v_candidates: set[CategoryMeta],
@@ -54,24 +56,6 @@ def get_matchings(tree: LabeledTree, matching_rules: MatchingRule, inheritance: 
     return ret
 
 
-# ((None, None, <class 'src.mcfg.S'>),
-#  (((None, None, <class 'src.mcfg.CTRL'>),
-#    (((0, None, <class 'src.mcfg.NP_s'>),
-#      ((1, None, <class 'src.mcfg.NP_s'>),
-#       (None, None, <class 'src.mcfg.DIE'>),
-#       (2, None, <class 'src.mcfg.NP_o'>),
-#       (None, 0, <class 'src.mcfg.REL_su_VERB'>))),
-#     (None, 1, <class 'src.mcfg.TV_su_ctrl'>),
-#     (3, None, <class 'src.mcfg.NP_o'>),
-#     ((None, None, <class 'src.mcfg.VC'>),
-#      ((None, 2, <class 'src.mcfg.INF_tv'>),
-#       (None, None, <class 'src.mcfg.TE'>))))),))
-# fn([NP_s, DIE, NP_o, REL_su_VERB, TV_su_ctrl, NP_o, INF_tv, TE]) = DATAAAA
-
-SpanRealization = list[tuple[list[int], list[int], tuple[int, int]]]
-Realized = list[tuple[list[int], list[int], str]]
-
-
 def project_tree(tree: LabeledTree) -> list[CategoryMeta]:
     if len(tree) == 3:
         return [tree[2]]
@@ -100,8 +84,8 @@ def labeled_tree_to_realization(
 
     if len(tree) == 3:
         np_idx, vp_idx, category = tree
-        _np_labels, _vp_labels = add_to_inheritance(np_labels, np_idx), add_to_inheritance(vp_labels, vp_idx)
-        return offset + 1, [[(np_labels, _vp_labels, (offset, i))] for i in range(category.arity)]
+        np_labels, vp_labels = add_to_inheritance(np_labels, np_idx), add_to_inheritance(vp_labels, vp_idx)
+        return offset + 1, [[(np_labels, vp_labels, (offset, i))] for i in range(category.arity)]
 
     (np_idx, vp_idx, category), children = tree
     np_labels = add_to_inheritance(np_labels, np_idx)
