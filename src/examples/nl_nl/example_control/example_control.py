@@ -1,5 +1,5 @@
-from ...mcfg import CategoryMeta, AbsRule, AbsGrammar
-from .span_realization import abstree_to_labeledtree, labeledtree_to_surface, get_matchings
+from ....mcfg import CategoryMeta, AbsRule, AbsGrammar
+from ..span_realization import abstree_to_labeledtree, get_matchings
 from pprint import pprint
 
 """
@@ -80,9 +80,6 @@ DIE.constants = ['die']
 REL_su_VERB.constants = ['eet']
 REL_obj_VERB.constants = ['eet']
 
-
-def default_concat(*args):
-    return ' '.join(args)
 
 annotated_rules = [
         ((S,            (CTRL,)),

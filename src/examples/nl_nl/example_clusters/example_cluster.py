@@ -88,54 +88,47 @@ TV_inf_action.constants = ['drinken', 'eten']
 TV_inf_sense.constants = ['zien', 'horen', 'ruiken', 'voelen', 'leren', 'helpen']
 TV_inf_ctrl.constants = ['beloven', 'vragen']
 
+"""
+S(XYZ) -> PREF(X) EMB(Y, Z)
+PREF -> '(Iemand ziet)'
+
+EMB(X, Y) -> NP_s(X) ITV_inf_action(Y)
+
+(Iemand ziet) [de man] de vrouw een biertje, [zien] drinken
+EMB(XY, Z) -> NP_s(X) NP_o(Y) TV_inf_action(Z)
+
+(Iemand ziet) [de man] de vrouw [zien] drinken
+EMB(XY, ZW) -> NP_s(X) TV_inf_sense(Z) EMB(Y, W)
+
+(Iemand ziet) de man de vrouw leren dansen
+(Iemand ziet) de man de vrouw leren te dansen
+(Iemand ziet) de man de vrouw leren om te dansen
+(Iemand ziet) [de man]11 [de vrouw]12 [leren]1 een biertje te drinken
+(Iemand ziet) [de man]11 de vrouw de kinderen leren zien zwemmen
+
+(Iemand ziet) de man de vrouw beloven te dansen
+(Iemand ziet) de man de vrouw beloven om te dansen
+(Iemand ziet) de man de vrouw beloven om de kinderen te leren dansen
+(Iemand ziet) de man de vrouw beloven een biertje te drinken
+EMB(XY, ZW) -> NP_s(X) NP_o(Y) TV_inf_ctrl(Z) VC(W)
+VC(XY) -> TE(X) ITV_inf_action(Y)
+
+(Iemand weet dat) de man de vrouw de kinderen ziet leren zwemmen
+(Iemand weet dat) de man de vrouw leert de kinderen te zien zwemmen
+EMB(XY, ZW) -> NP_s() NP_o() TV_inf_instruct VC(W)
 
 
-# S(XYZ) -> PREF(X) EMB(Y, Z)
-# PREF -> '(Iemand ziet)'
-#
-# EMB(X, Y) -> NP_s(X) ITV_inf_action(Y)
-
-# (Iemand ziet) [de man] de vrouw een biertje, [zien] drinken
-# EMB(XY, Z) -> NP_s(X) NP_o(Y) TV_inf_action(Z)
-
-# (Iemand ziet) [de man] de vrouw [zien] drinken
-# EMB(XY, ZW) -> NP_s(X) TV_inf_sense(Z) EMB(Y, W)
-
-# (Iemand ziet) de man de vrouw leren dansen
-# (Iemand ziet) de man de vrouw leren te dansen
-# (Iemand ziet) de man de vrouw leren om te dansen
-# (Iemand ziet) [de man]11 [de vrouw]12 [leren]1 een biertje te drinken
-# (Iemand ziet) [de man]11 de vrouw de kinderen leren zien zwemmen
-
-# (Iemand ziet) de man de vrouw beloven te dansen
-# (Iemand ziet) de man de vrouw beloven om te dansen
-# (Iemand ziet) de man de vrouw beloven om de kinderen te leren dansen
-# (Iemand ziet) de man de vrouw beloven een biertje te drinken
-# EMB(XY, ZW) -> NP_s(X) NP_o(Y) TV_inf_ctrl(Z) VC(W)
-# VC(XY) -> TE(X) ITV_inf_action(Y)
-
-# (Iemand weet dat) de man de vrouw de kinderen ziet leren zwemmen
-# (Iemand weet dat) de man de vrouw leert de kinderen te zien zwemmen
-# EMB(XY, ZW) -> NP_s() NP_o() TV_inf_instruct VC(W)
-
-#
-# EMB(de man de vrouw de kinderen, ziet beloven te dansen) ->
-# EMB(de vrouw de kinderen, beloven te dansen) ->
-# EMB(XY, ZWU)
+EMB(de man de vrouw de kinderen, ziet beloven te dansen) ->
+EMB(de vrouw de kinderen, beloven te dansen) ->
+EMB(XY, ZWU)
+"""
 
 
-
-rules = Rule.from_list([
-        (S, (PREF, EMB), lambda pref, emb: S(f'{pref[0]} {emb[0]} {emb[1]}')),
-        (EMB, (NP_s, ITV_inf_action), lambda np_s, itv_inf_action: EMB(np_s[0], itv_inf_action[0])),
-        (EMB, (NP_s, NP_o, TV_inf_action), lambda np_s, np_o, tv_inf_action: EMB(f'{np_s[0]} {np_o[0]}', tv_inf_action[0])),
-        (EMB, (NP_s, TV_inf_sense, EMB), lambda np_s, tv_inf_sense, emb: EMB(f'{np_s[0]} {emb[0]}', f'{tv_inf_sense[0]} {emb[1]}')),
-        (EMB, (NP_s, NP_s2, TV_inf_ctrl, VC), lambda np_s, np_o, tv_inf_ctrl, vc: EMB(f'{np_s[0]} {np_o[0]}', f'{tv_inf_ctrl[0]} {vc[0]}')),
-        (VC, (TE, ITV_inf_action), simple_concat(VC))
-    ])
-
-
-grammar = Grammar(rules)
-trees = grammar.generate(S, 5, True)
-from pprint import pprint
-pprint(realize_trees(trees))
+# rules = Rule.from_list([
+#         (S, (PREF, EMB), lambda pref, emb: S(f'{pref[0]} {emb[0]} {emb[1]}')),
+#         (EMB, (NP_s, ITV_inf_action), lambda np_s, itv_inf_action: EMB(np_s[0], itv_inf_action[0])),
+#         (EMB, (NP_s, NP_o, TV_inf_action), lambda np_s, np_o, tv_inf_action: EMB(f'{np_s[0]} {np_o[0]}', tv_inf_action[0])),
+#         (EMB, (NP_s, TV_inf_sense, EMB), lambda np_s, tv_inf_sense, emb: EMB(f'{np_s[0]} {emb[0]}', f'{tv_inf_sense[0]} {emb[1]}')),
+#         (EMB, (NP_s, NP_s2, TV_inf_ctrl, VC), lambda np_s, np_o, tv_inf_ctrl, vc: EMB(f'{np_s[0]} {np_o[0]}', f'{tv_inf_ctrl[0]} {vc[0]}')),
+#         (VC, (TE, ITV_inf_action), simple_concat(VC))
+#     ])
