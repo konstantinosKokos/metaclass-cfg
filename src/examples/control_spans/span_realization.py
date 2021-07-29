@@ -66,9 +66,7 @@ def get_matchings(tree: LabeledTree, matching_rules: MatchingRule, inheritance: 
 #     ((None, None, <class 'src.mcfg.VC'>),
 #      ((None, 2, <class 'src.mcfg.INF_tv'>),
 #       (None, None, <class 'src.mcfg.TE'>))))),))
-
-# {1: 0, 0: 1, 2: 0}
-
+# fn([NP_s, DIE, NP_o, REL_su_VERB, TV_su_ctrl, NP_o, INF_tv, TE]) = DATAAAA
 
 SpanRealization = list[tuple[list[int], list[int], tuple[int, int]]]
 Realized = list[tuple[list[int], list[int], str]]
