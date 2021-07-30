@@ -1,7 +1,6 @@
-# todo
-
-from src.mcfg import Category, CategoryMeta, AbsRule, AbsGrammar
-
+from ....mcfg import CategoryMeta, AbsRule, AbsGrammar
+from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
+                                project_tree, get_choices, realize_span)
 
 """
 Pseudo-code for the description of the grammar.
@@ -132,31 +131,22 @@ annotated_rules = [
         ((EMB,          (NP_s, ITV_inf_action)),
          ({1: 0},       (False, False)),
          ([(0, 0)], [(1, 0)])),
-        ((EMB, (NP_s, NP_o, TV_inf_action)),
-         ({2: 0}, (False, False, False)),
+        ((EMB,          (NP_s, NP_o, TV_inf_action)),
+         ({2: 0},       (False, False, False)),
          ([(0, 0), (1, 0)], [(2, 0)])),
-        ((EMB, (NP_s, TV_inf_sense, EMB)),
-          ({1: 0}, (False, False, False)),
-          ([(0, 0), (2, 0)], [(1, 0), (2, 1)])),
-        ((EMB, (NP_s, NP_s2, TV_su_inf_ctrl, VC)),
-          ({2: 0}, (False, False, False, 0)),
-          ([(0, 0), (1, 0)], [(2, 0), (3, 0)])),
-         ((EMB, (NP_s, NP_s2, TV_obj_inf_ctrl, VC)),
-          ({2: 0}, (False, False, False, 1)),
-          ([(0, 0), (1, 0)], [(2, 0), (3, 0)])),
-         ((VC, (TE, ITV_inf_action)),
-           ({1: None}, (False, False)),
-           ([(0, 0), (1, 0)],))
-        ]
-
-# rules = Rule.from_list([
-#         (S, (PREF, EMB), lambda pref, emb: S(f'{pref[0]} {emb[0]} {emb[1]}')),
-#         (EMB, (NP_s, ITV_inf_action), lambda np_s, itv_inf_action: EMB(np_s[0], itv_inf_action[0])),
-#         (EMB, (NP_s, NP_o, TV_inf_action), lambda np_s, np_o, tv_inf_action: EMB(f'{np_s[0]} {np_o[0]}', tv_inf_action[0])),
-#         (EMB, (NP_s, TV_inf_sense, EMB), lambda np_s, tv_inf_sense, emb: EMB(f'{np_s[0]} {emb[0]}', f'{tv_inf_sense[0]} {emb[1]}')),
-#         (EMB, (NP_s, NP_s2, TV_inf_ctrl, VC), lambda np_s, np_o, tv_inf_ctrl, vc: EMB(f'{np_s[0]} {np_o[0]}', f'{tv_inf_ctrl[0]} {vc[0]}')),
-#         (VC, (TE, ITV_inf_action), simple_concat(VC))
-#     ])
+        ((EMB,          (NP_s, TV_inf_sense, EMB)),
+         ({1: 0},       (False, False, False)),
+         ([(0, 0), (2, 0)], [(1, 0), (2, 1)])),
+        ((EMB,          (NP_s, NP_s2, TV_su_inf_ctrl, VC)),
+         ({2: 0},       (False, False, False, 0)),
+         ([(0, 0), (1, 0)], [(2, 0), (3, 0)])),
+        ((EMB,          (NP_s, NP_s2, TV_obj_inf_ctrl, VC)),
+         ({2: 0},       (False, False, False, 1)),
+         ([(0, 0), (1, 0)], [(2, 0), (3, 0)])),
+        ((VC,           (TE, ITV_inf_action)),
+         ({1: None},    (False, False)),
+         ([(0, 0), (1, 0)],))
+]
 
 n_candidates = {NP_s, NP_o, NP_s2}
 v_candidates = {ITV_inf_action, TV_inf_action, TV_inf_sense, TV_su_inf_ctrl, TV_obj_inf_ctrl}
@@ -167,9 +157,8 @@ matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rul
 surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
 
 
-def main():
-    from ..span_realization import *
-    trees = grammar.generate(goal=S, depth=4)
+def main(max_depth: int):
+    trees = [tree for depth in range(max_depth) for tree in grammar.generate(goal=S, depth=depth)]
     labeled_trees = list(map(lambda t: abstree_to_labeledtree(t, n_candidates, v_candidates,
                                                               iter(range(10)), iter(range(10))), trees))
     realizations = list(map(lambda t: labeled_tree_to_realization(t, surf_rules), trees))
