@@ -63,6 +63,7 @@ def project_tree(tree: LabeledTree) -> list[CategoryMeta]:
 
 
 def get_choices(leaves: list[CategoryMeta]) -> list[list[Category]]:
+    # todo: filtering constraints & maybe lazify?
     constants = [leaf.constants for leaf in leaves]
     return list(map(list, product(*constants)))
 
