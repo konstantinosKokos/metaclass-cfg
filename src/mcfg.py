@@ -4,10 +4,10 @@ from itertools import product
 
 
 class Category:
-    ...
+    surface:        tuple[str, ...]
 
     def __getitem__(self, item: int):
-        ...
+        return self.surface[item]
 
 
 class CategoryMeta(type):
@@ -23,17 +23,23 @@ class CategoryMeta(type):
         def _repr(cls) -> str:
             return f'{name}(surface={str(cls.surface)})'
 
-        def _getitem(cls, idx: int) -> str:
-            return cls.surface[idx]
-
         def _hash(cls) -> int:
-            return hash((name, arity))
+            return hash((type(cls), cls.surface))
+
+        def _eq(cls, other: object) -> bool:
+            return isinstance(other, Category) and hash(cls) == hash(other)
 
         return super().__new__(mcs, name, (Category,), {
-            'arity': arity, '__init__': _init, '__repr__': _repr, '__getitem__': _getitem, '__hash__': _hash})
+            'arity': arity, '__init__': _init, '__repr__': _repr, '__hash__': _hash, '__eq__': _eq})
 
     def __init__(cls, _: str, arity: int = 1):
         super(CategoryMeta, cls).__init__(arity)
+
+    def __hash__(cls) -> int:
+        return hash((cls.__name__, cls.arity))
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, CategoryMeta) and hash(self) == hash(other)
 
     @property
     def constants(cls: 'CategoryMeta') -> list[Category]:
