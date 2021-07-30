@@ -161,4 +161,9 @@ def main(max_depth: int):
     trees = [tree for depth in range(max_depth) for tree in grammar.generate(goal=S, depth=depth)]
     labeled_trees = list(map(lambda t: abstree_to_labeledtree(t, n_candidates, v_candidates,
                                                               iter(range(10)), iter(range(10))), trees))
-    realizations = list(map(lambda t: labeled_tree_to_realization(t, surf_rules), trees))
+    realizations = list(map(lambda t: labeled_tree_to_realization(t, surf_rules, [], [])[1], labeled_trees))
+    matchings = list(map(lambda t: get_matchings(t, matching_rules), labeled_trees))
+    choices = list(map(lambda t: get_choices(project_tree(t)), labeled_trees))
+    realized = [[realize_span(option, span_realization[0]) for option in options]
+                for span_realization, options in zip(realizations, choices)]
+    return realized, matchings
