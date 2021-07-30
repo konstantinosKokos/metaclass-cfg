@@ -72,7 +72,7 @@ def realize_span(leaves: list[Category], span_realization: SpanRealization) -> R
 
 
 def labeled_tree_to_realization(
-        tree: LabeledTree, surface_rules: SurfaceRule, np_labels: list[int] = [], vp_labels: list[int] = [],
+        tree: LabeledTree, surface_rules: SurfaceRule, np_labels: list[int], vp_labels: list[int],
         offset: int = 0) -> tuple[int, list[SpanRealization]]:
 
     def _f(_tree: LabeledTree, _offset: int) -> tuple[int, list[SpanRealization]]:
