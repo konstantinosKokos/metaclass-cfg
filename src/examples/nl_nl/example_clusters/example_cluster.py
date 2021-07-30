@@ -135,10 +135,10 @@ annotated_rules = [
         ((EMB, (NP_s, NP_o, TV_inf_action)),
          ({2: 0}, (False, False, False)),
          ([(0, 0), (1, 0)], [(2, 0)])),
-         ((EMB, (NP_s, TV_inf_sense, EMB)),
+        ((EMB, (NP_s, TV_inf_sense, EMB)),
           ({1: 0}, (False, False, False)),
           ([(0, 0), (2, 0)], [(1, 0), (2, 1)])),
-         ((EMB, (NP_s, NP_s2, TV_su_inf_ctrl, VC)),
+        ((EMB, (NP_s, NP_s2, TV_su_inf_ctrl, VC)),
           ({2: 0}, (False, False, False, 0)),
           ([(0, 0), (1, 0)], [(2, 0), (3, 0)])),
          ((EMB, (NP_s, NP_s2, TV_obj_inf_ctrl, VC)),
@@ -166,9 +166,10 @@ grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
 matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
 surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
 
+
 def main():
     from ..span_realization import *
     trees = grammar.generate(goal=S, depth=4)
-    gen1 = (n for n in range(1, 100))
-    gen2 = (n for n in range(1, 100))
-    labeled_trees = list(map(lambda t: abstree_to_labeledtree(t, n_candidates, v_candidates, gen1, gen2), trees))
+    labeled_trees = list(map(lambda t: abstree_to_labeledtree(t, n_candidates, v_candidates,
+                                                              iter(range(10)), iter(range(10))), trees))
+    realizations = list(map(lambda t: labeled_tree_to_realization(t, surf_rules), trees))
