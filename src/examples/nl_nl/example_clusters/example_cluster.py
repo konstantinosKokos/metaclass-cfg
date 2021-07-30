@@ -1,7 +1,7 @@
 # todo
 
-from src.mcfg import Category, CategoryMeta, Rule, Grammar, realize_trees
-from src.example_utils import get_nouns, simple_concat
+from src.mcfg import Category, CategoryMeta, AbsRule, AbsGrammar
+
 
 """
 Pseudo-code for the description of the grammar.
@@ -72,13 +72,14 @@ NP_o = CategoryMeta('NP_o')
 ITV_inf_action = CategoryMeta('ITV_inf_action')
 TV_inf_action = CategoryMeta('TV_inf_action')
 TV_inf_sense = CategoryMeta('TV_inf_sense')
-TV_inf_ctrl = CategoryMeta('TV_inf_ctrl')
+TV_su_inf_ctrl = CategoryMeta('TV_su_inf_ctrl')
+TV_obj_inf_ctrl = CategoryMeta('TV_obj_inf_ctrl')
 
 VC = CategoryMeta('VC')
 
 # Constants
-NP_s.constants = get_nouns(4)
-NP_s2.constants = get_nouns(4)
+NP_s.constants = ['de man', 'de vrouw', 'het kind']
+NP_s2.constants = ['de sollicitant', 'het meisje', 'de socialist']
 NP_o.constants = ['het biertje', 'een pizza']
 PREF.constants = ['(Iemand ziet)']
 TE.constants = ['te']
@@ -86,7 +87,8 @@ TE.constants = ['te']
 ITV_inf_action.constants = ['dansen', 'zingen']
 TV_inf_action.constants = ['drinken', 'eten']
 TV_inf_sense.constants = ['zien', 'horen', 'ruiken', 'voelen', 'leren', 'helpen']
-TV_inf_ctrl.constants = ['beloven', 'vragen']
+TV_su_inf_ctrl.constants = ['beloven', 'garanderen']
+TV_obj_inf_ctrl.constants = ['vragen', 'dwingen']
 
 """
 S(XYZ) -> PREF(X) EMB(Y, Z)
@@ -123,6 +125,29 @@ EMB(de vrouw de kinderen, beloven te dansen) ->
 EMB(XY, ZWU)
 """
 
+annotated_rules = [
+        ((S,            (PREF, EMB)),
+         (dict(),       (False, False)),
+         ([(0, 0), (1, 0), (1, 1)],)),
+        ((EMB,          (NP_s, ITV_inf_action)),
+         ({1: 0},       (False, False)),
+         ([(0, 0)], [(1, 0)])),
+        ((EMB, (NP_s, NP_o, TV_inf_action)),
+         ({2: 0}, (False, False, False)),
+         ([(0, 0), (1, 0)], [(2, 0)])),
+         ((EMB, (NP_s, TV_inf_sense, EMB)),
+          ({1: 0}, (False, False, False)),
+          ([(0, 0), (2, 0)], [(1, 0), (2, 1)])),
+         ((EMB, (NP_s, NP_s2, TV_su_inf_ctrl, VC)),
+          ({2: 0}, (False, False, False, 0)),
+          ([(0, 0), (1, 0)], [(2, 0), (3, 0)])),
+         ((EMB, (NP_s, NP_s2, TV_obj_inf_ctrl, VC)),
+          ({2: 0}, (False, False, False, 1)),
+          ([(0, 0), (1, 0)], [(2, 0), (3, 0)])),
+         ((VC, (TE, ITV_inf_action)),
+           ({1: None}, (False, False)),
+           ([(0, 0), (1, 0)],))
+        ]
 
 # rules = Rule.from_list([
 #         (S, (PREF, EMB), lambda pref, emb: S(f'{pref[0]} {emb[0]} {emb[1]}')),
@@ -132,3 +157,18 @@ EMB(XY, ZWU)
 #         (EMB, (NP_s, NP_s2, TV_inf_ctrl, VC), lambda np_s, np_o, tv_inf_ctrl, vc: EMB(f'{np_s[0]} {np_o[0]}', f'{tv_inf_ctrl[0]} {vc[0]}')),
 #         (VC, (TE, ITV_inf_action), simple_concat(VC))
 #     ])
+
+n_candidates = {NP_s, NP_o, NP_s2}
+v_candidates = {ITV_inf_action, TV_inf_action, TV_inf_sense, TV_su_inf_ctrl, TV_obj_inf_ctrl}
+
+grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
+
+matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
+surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
+
+def main():
+    from ..span_realization import *
+    trees = grammar.generate(goal=S, depth=4)
+    gen1 = (n for n in range(1, 100))
+    gen2 = (n for n in range(1, 100))
+    labeled_trees = list(map(lambda t: abstree_to_labeledtree(t, n_candidates, v_candidates, gen1, gen2), trees))
