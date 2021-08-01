@@ -1,5 +1,5 @@
 from ...mcfg import Category, CategoryMeta, Tree, AbsTree, AbsRule
-from typing import Union, Iterator
+from typing import Union, Iterator, Sequence
 from typing import Optional as Maybe
 from itertools import product
 
@@ -62,13 +62,11 @@ def project_tree(tree: LabeledTree) -> list[CategoryMeta]:
     return sum([project_tree(c) for c in children], [])
 
 
-def get_choices(leaves: list[CategoryMeta]) -> list[list[Category]]:
-    # todo: filtering constraints & maybe lazify?
-    constants = [leaf.constants for leaf in leaves]
-    return list(map(list, product(*constants)))
+def get_choices(leaves: list[CategoryMeta]) -> Iterator[tuple[Category, ...]]:
+    return filter(lambda choice: len(set(choice)) == len(choice), product(*map(lambda cat: cat.constants, leaves)))
 
 
-def realize_span(leaves: list[Category], span_realization: SpanRealization) -> Realized:
+def realize_span(leaves: Sequence[Category], span_realization: SpanRealization) -> Realized:
     return [(nps, vps, leaves[idx][coord]) for nps, vps, (idx, coord) in span_realization]
 
 
