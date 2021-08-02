@@ -79,8 +79,8 @@ INF_obj_ctrl.constants = ['vragen', 'dwingen']
 INF_tv.constants = [('het biertje', 'drinken'), ('een pizza', 'eten')]
 DIE.constants = ['die']
 
-REL_su_VERB.constants = ['eet']
-REL_obj_VERB.constants = ['eet']
+REL_su_VERB.constants = ['helpt', 'bijstaat']
+REL_obj_VERB.constants = ['helpt', 'bijstaat']
 
 
 annotated_rules = [
