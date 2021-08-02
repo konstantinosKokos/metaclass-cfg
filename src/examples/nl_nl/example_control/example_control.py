@@ -1,5 +1,7 @@
 from ....mcfg import CategoryMeta, AbsRule, AbsGrammar
-from ..span_realization import abstree_to_labeledtree, get_matchings
+# from ..span_realization import abstree_to_labeledtree, get_matchings
+from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
+                                project_tree, get_choices, realize_span)
 from pprint import pprint
 
 """
@@ -121,3 +123,14 @@ grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
 
 matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
 surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
+
+def main(max_depth: int):
+    trees = [tree for depth in range(max_depth) for tree in grammar.generate(goal=S, depth=depth)]
+    labeled_trees = list(map(lambda t: abstree_to_labeledtree(t, n_candidates, v_candidates,
+                                                              iter(range(10)), iter(range(10))), trees))
+    realizations = list(map(lambda t: labeled_tree_to_realization(t, surf_rules, [], [])[1], labeled_trees))
+    matchings = list(map(lambda t: get_matchings(t, matching_rules), labeled_trees))
+    choices = list(map(lambda t: get_choices(project_tree(t)), labeled_trees))
+    realized = [[realize_span(option, span_realization[0]) for option in options]
+                for span_realization, options in zip(realizations, choices)]
+    return trees, realized, matchings

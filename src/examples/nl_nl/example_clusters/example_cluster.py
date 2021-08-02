@@ -166,4 +166,4 @@ def main(max_depth: int):
     choices = list(map(lambda t: get_choices(project_tree(t)), labeled_trees))
     realized = [[realize_span(option, span_realization[0]) for option in options]
                 for span_realization, options in zip(realizations, choices)]
-    return realized, matchings
+    return trees, realized, matchings
