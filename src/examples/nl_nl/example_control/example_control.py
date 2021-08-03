@@ -124,8 +124,16 @@ grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
 matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
 surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
 
-exclude_candidates = {DIE}
+exclude_candidates = {DIE, TE}
+from pprint import pprint
 
+# def map_tree(tree, f):
+#     if isinstance(tree, CategoryMeta):
+#         return f(tree)
+#     head, children = tree
+#     return f(head), tuple(map(lambda c: map_tree(c, f), children))
+
+# from src.examples.nl_nl.example_control.example_control import *
 def main(max_depth: int):
     trees = [tree for depth in range(max_depth) for tree in grammar.generate(goal=S, depth=depth)]
     labeled_trees = list(map(lambda t: abstree_to_labeledtree(t, n_candidates, v_candidates,
