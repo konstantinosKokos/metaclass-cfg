@@ -80,7 +80,7 @@ INF_tv.constants = [('het biertje', 'drinken'), ('een pizza', 'eten')]
 DIE.constants = ['die']
 
 REL_su_VERB.constants = ['helpt', 'bijstaat']
-REL_obj_VERB.constants = ['helpt', 'bijstaat']
+REL_obj_VERB.constants = ['negeert', 'verpleegt']
 
 
 annotated_rules = [
@@ -127,11 +127,11 @@ surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in ann
 exclude_candidates = {DIE, TE}
 from pprint import pprint
 
-# def map_tree(tree, f):
-#     if isinstance(tree, CategoryMeta):
-#         return f(tree)
-#     head, children = tree
-#     return f(head), tuple(map(lambda c: map_tree(c, f), children))
+def map_tree(tree, f):
+    if isinstance(tree, CategoryMeta):
+        return f(tree)
+    head, children = tree
+    return f(head), tuple(map(lambda c: map_tree(c, f), children))
 
 # from src.examples.nl_nl.example_control.example_control import *
 def main(max_depth: int):

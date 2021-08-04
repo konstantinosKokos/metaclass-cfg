@@ -51,7 +51,7 @@ def get_matchings(tree: LabeledTree, matching_rules: MatchingRule, inheritance: 
         ret.update(get_matchings(
             child,
             matching_rules,
-            get_top(children[inh])[0] if isinstance(inh, int) else inheritance if inh else None))
+            get_top(children[inh])[0] if not isinstance(inh, bool) else inheritance if inh else None))
     return ret
 
 
