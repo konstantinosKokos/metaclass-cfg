@@ -1,7 +1,10 @@
-from ....mcfg import CategoryMeta, AbsRule, AbsGrammar
+import os.path
+import pickle
+from ....mcfg import CategoryMeta, AbsRule, AbsGrammar, AbsTree
 # from ..span_realization import abstree_to_labeledtree, get_matchings
 from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
                                 project_tree, get_choices, realize_span)
+from ..lexicon import lexicon
 from pprint import pprint
 
 """
@@ -71,6 +74,7 @@ TE.constants = ['te']
 ITV_inf.constants = ['vertrekken', 'komen', 'verliezen', 'winnen']
 TV_inf.constants = ['drinken', 'eten']
 
+
 TV_su_ctrl.constants = ['belooft', 'garandeert']
 TV_obj_ctrl.constants = ['vraagt', 'dwingt']
 INF_su_ctrl.constants = ['beloven', 'garanderen']
@@ -127,14 +131,35 @@ surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in ann
 exclude_candidates = {DIE, TE}
 from pprint import pprint
 
+
 def map_tree(tree, f):
     if isinstance(tree, CategoryMeta):
         return f(tree)
     head, children = tree
     return f(head), tuple(map(lambda c: map_tree(c, f), children))
 
+
+def get_string_trees(trees: list[AbsTree]):
+    return list(map(lambda t: map_tree(t, lambda n: n.__name__), trees))
+
+
 # from src.examples.nl_nl.example_control.example_control import *
-def main(max_depth: int):
+
+def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str],
+                  obj_verbs: list[str], obj_verbs_inf: list[str]):
+    n_idx = len(nouns)//3
+    NP_s.constants = nouns[:n_idx]
+    NP_o.constants = nouns[n_idx:2*n_idx]
+    NP_o2.constants = nouns[2*n_idx:]
+
+    TV_su_ctrl.constants = su_verbs
+    TV_obj_ctrl.constants = obj_verbs
+    INF_su_ctrl.constants = su_verbs_inf
+    INF_obj_ctrl.constants = obj_verbs_inf
+
+
+
+def get_grammar(max_depth: int):
     trees = [tree for depth in range(max_depth) for tree in grammar.generate(goal=S, depth=depth)]
     labeled_trees = list(map(lambda t: abstree_to_labeledtree(t, n_candidates, v_candidates,
                                                               iter(range(10)), iter(range(10))), trees))
@@ -144,3 +169,30 @@ def main(max_depth: int):
     realized = [[realize_span(option, span_realization[0]) for option in options]
                 for span_realization, options in zip(realizations, choices)]
     return trees, realized, matchings
+
+
+def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int],
+         su_verb_idxs: tuple[int,int], obj_verb_idxs: tuple[int,int]):
+    all_nouns = lexicon.de_nouns
+    su_verbs = lexicon.subj_control_verbs_present_tense
+    su_verbs_inf = lexicon.subj_control_verbs_inf
+    obj_verbs = lexicon.obj_control_verbs_present_tense
+    obj_verbs_inf = lexicon.obj_control_verbs_inf
+    (noun_l, noun_r) = noun_idxs
+    (su_verb_l, su_verb_r) = su_verb_idxs
+    (obj_verb_l, obj_verb_r) = obj_verb_idxs
+    set_constants(nouns=all_nouns[noun_l:noun_r],
+                  su_verbs=su_verbs[su_verb_l:su_verb_r],
+                  su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
+                  obj_verbs=obj_verbs[obj_verb_l:obj_verb_r],
+                  obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r])
+    trees, realized, matchings = get_grammar(max_depth=max_depth)
+    string_trees = get_string_trees(trees)
+    if os.path.isfile(out_fn):
+        os.remove(out_fn)
+    with open(out_fn, 'wb') as out_file:
+        pickle.dump({'trees': trees, 'realizations': realized, 'matchings': matchings}, out_file)
+
+# my_main_train = main(max_depth=5, out_fn='../synt_nl2i_eval_torch/data/grammars/example_control_train.p',
+#                      noun_idxs=(100,200), su_verb_idxs=(), obj_verb_idxs=())
+# my_main = main(max_depth=5, out_fn='../synt_nl2i_eval_torch/data/grammars/example_control.p')
