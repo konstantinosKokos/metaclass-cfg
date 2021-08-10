@@ -62,12 +62,12 @@ def project_tree(tree: LabeledTree) -> list[CategoryMeta]:
     return sum([project_tree(c) for c in children], [])
 
 
-def has_no_duplicates(choices: list[Category], exclude: set[CategoryMeta] = []):
+def has_no_duplicates(choices: list[Category], exclude: set[CategoryMeta] = frozenset()):
     short_list = list(filter(lambda l: type(l) not in exclude, choices))
     return len(set(short_list)) == len(short_list)
 
 
-def get_choices(leaves: list[CategoryMeta], exclude: set[CategoryMeta] = {}) -> Iterator[tuple[Category, ...]]:
+def get_choices(leaves: list[CategoryMeta], exclude: set[CategoryMeta] = frozenset()) -> Iterator[tuple[Category, ...]]:
     return filter(lambda choice: has_no_duplicates(choice, exclude), product(*map(lambda cat: cat.constants, leaves)))
 
 
