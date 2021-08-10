@@ -87,7 +87,7 @@ class AbsGrammar:
         self.rules = rules
         self.multiplicity = max(map(lambda rule: rule.multiplicity, rules))
 
-    def generate(self, goal: CategoryMeta, depth: int, filter_empty: bool = True):
+    def generate(self, goal: CategoryMeta, depth: int, filter_empty: bool = True) -> list[AbsTree]:
         ret = self.induction([goal], depth + 1)
         return list(filter(realizable, ret)) if filter_empty else ret
 

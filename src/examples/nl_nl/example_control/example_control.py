@@ -1,12 +1,3 @@
-import os.path
-import pickle
-from ....mcfg import CategoryMeta, AbsRule, AbsGrammar, AbsTree
-# from ..span_realization import abstree_to_labeledtree, get_matchings
-from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
-                                project_tree, get_choices, realize_span)
-from ..lexicon import lexicon
-from pprint import pprint
-
 """
 Pseudo-code for the description of the grammar.
 
@@ -38,6 +29,23 @@ TV_inf -> 'drinken', 'eten'
 
 """
 
+
+import os.path
+import pickle
+from ....mcfg import CategoryMeta, AbsRule, AbsGrammar, AbsTree, Tree, T
+from typing import Callable
+from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
+                                project_tree, get_choices, realize_span, Matching, Realized)
+from ..lexicon import lexicon
+
+
+def map_tree(tree: Tree[CategoryMeta], f: Callable[[CategoryMeta], T]) -> Tree[T]:
+    if isinstance(tree, CategoryMeta):
+        return f(tree)
+    head, children = tree
+    return f(head), tuple(map(lambda c: map_tree(c, f), children))
+
+
 # Categories
 S = CategoryMeta('S')
 CTRL = CategoryMeta('CTRL')
@@ -64,7 +72,6 @@ REL_su_VERB = CategoryMeta('REL_su_VERB')
 REL_obj_VERB = CategoryMeta('REL_obj_VERB')
 
 # Constants
-
 NP_s.constants = ['de man', 'de vrouw', 'het kind']
 NP_o.constants = ['de sollicitant', 'het meisje', 'de socialist']
 NP_o2.constants = ['de agent', 'het opaatje', 'de geitenhoeder']
@@ -73,7 +80,6 @@ NP_inf.constants = ['het biertje', 'een pizza']
 TE.constants = ['te']
 ITV_inf.constants = ['vertrekken', 'komen', 'verliezen', 'winnen']
 TV_inf.constants = ['drinken', 'eten']
-
 
 TV_su_ctrl.constants = ['belooft', 'garandeert']
 TV_obj_ctrl.constants = ['vraagt', 'dwingt']
@@ -129,14 +135,6 @@ matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rul
 surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
 
 exclude_candidates = {DIE, TE}
-from pprint import pprint
-
-
-def map_tree(tree, f):
-    if isinstance(tree, CategoryMeta):
-        return f(tree)
-    head, children = tree
-    return f(head), tuple(map(lambda c: map_tree(c, f), children))
 
 
 def get_string_trees(trees: list[AbsTree]):
@@ -158,8 +156,7 @@ def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str]
     INF_obj_ctrl.constants = obj_verbs_inf
 
 
-
-def get_grammar(max_depth: int):
+def get_grammar(max_depth: int) -> tuple[list[AbsTree], list[list[Realized]], list[Matching]]:
     trees = [tree for depth in range(max_depth) for tree in grammar.generate(goal=S, depth=depth)]
     labeled_trees = list(map(lambda t: abstree_to_labeledtree(t, n_candidates, v_candidates,
                                                               iter(range(10)), iter(range(10))), trees))
@@ -172,7 +169,7 @@ def get_grammar(max_depth: int):
 
 
 def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int],
-         su_verb_idxs: tuple[int,int], obj_verb_idxs: tuple[int,int]):
+         su_verb_idxs: tuple[int, int], obj_verb_idxs: tuple[int, int]):
     all_nouns = lexicon.de_nouns
     su_verbs = lexicon.subj_control_verbs_present_tense
     su_verbs_inf = lexicon.subj_control_verbs_inf
