@@ -182,9 +182,9 @@ def json_string(matching: Matching, surfaces: list[Realized]):
 def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: tuple[int, int],
          obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None):
     all_nouns = lexicon.de_nouns
-    su_verbs = lexicon.subj_control_verbs_present_tense
-    su_verbs_inf = lexicon.subj_control_verbs_inf
-    obj_verbs = lexicon.obj_control_verbs_present_tense
+    su_verbs = lexicon.sub_control_verbs_present
+    su_verbs_inf = lexicon.sub_control_verbs_inf
+    obj_verbs = lexicon.obj_control_verbs_present
     obj_verbs_inf = lexicon.obj_control_verbs_inf
     (noun_l, noun_r) = noun_idxs
     (su_verb_l, su_verb_r) = su_verb_idxs
