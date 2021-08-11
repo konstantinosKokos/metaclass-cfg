@@ -122,6 +122,10 @@ EMB(XY, ZW) -> NP_s() NP_o() TV_inf_instruct VC(W)
 EMB(de man de vrouw de kinderen, ziet beloven te dansen) ->
 EMB(de vrouw de kinderen, beloven te dansen) ->
 EMB(XY, ZWU)
+
+Indirect object can be left out without changing the understood subject within the cluster
+Example: Omdat hij mij de kraanvogels hielp (te) vergiftigen
+Example: Omdat hij de kraanvogels hielp (te) vergiftigen
 """
 
 annotated_rules = [
