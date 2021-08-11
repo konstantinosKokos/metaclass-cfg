@@ -31,12 +31,16 @@ TV_inf -> 'drinken', 'eten'
 
 
 import os.path
-import pickle
 from ....mcfg import CategoryMeta, AbsRule, AbsGrammar, AbsTree, Tree, T
-from typing import Callable
+from typing import Callable, Iterator
+from typing import Optional as Maybe
 from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
-                                project_tree, get_choices, realize_span, Matching, Realized)
+                                project_tree, get_choices, realize_span, Matching, Realized, sample_choices)
 from ..lexicon import lexicon
+from random import seed
+import json
+
+seed(42)
 
 
 def map_tree(tree: Tree[CategoryMeta], f: Callable[[CategoryMeta], T]) -> Tree[T]:
@@ -141,8 +145,6 @@ def get_string_trees(trees: list[AbsTree]):
     return list(map(lambda t: map_tree(t, lambda n: n.__name__), trees))
 
 
-# from src.examples.nl_nl.example_control.example_control import *
-
 def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str],
                   obj_verbs: list[str], obj_verbs_inf: list[str]):
     n_idx = len(nouns)//3
@@ -156,20 +158,29 @@ def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str]
     INF_obj_ctrl.constants = obj_verbs_inf
 
 
-def get_grammar(max_depth: int) -> tuple[list[AbsTree], list[list[Realized]], list[Matching]]:
-    trees = [tree for depth in range(max_depth) for tree in grammar.generate(goal=S, depth=depth)]
-    labeled_trees = list(map(lambda t: abstree_to_labeledtree(t, n_candidates, v_candidates,
-                                                              iter(range(10)), iter(range(10))), trees))
-    realizations = list(map(lambda t: labeled_tree_to_realization(t, surf_rules, [], [])[1], labeled_trees))
-    matchings = list(map(lambda t: get_matchings(t, matching_rules), labeled_trees))
-    choices = list(map(lambda t: get_choices(project_tree(t), exclude_candidates), labeled_trees))
-    realized = [[realize_span(option, span_realization[0]) for option in options]
-                for span_realization, options in zip(realizations, choices)]
-    return trees, realized, matchings
+def get_grammar(max_depth: int, sample: Maybe[int] = None) -> Iterator[str]:
+    def choice_fn(c: list[CategoryMeta]):
+        if sample is None:
+            return get_choices(c, exclude_candidates)
+        return sample_choices(c, sample, exclude_candidates)
+
+    for depth in range(max_depth):
+        for tree in grammar.generate(S, depth):
+            labeled_tree = abstree_to_labeledtree(tree, n_candidates, v_candidates, iter(range(999)), iter(range(999)))
+            realization = labeled_tree_to_realization(labeled_tree, surf_rules, [], [])[1]
+            matching = get_matchings(labeled_tree, matching_rules)
+            projection = project_tree(labeled_tree)
+            surfaces = [realize_span(choice, realization[0]) for choice in choice_fn(projection)]
+            # yield tree, labeled_tree, realization[0], matching, projection, surfaces
+            yield matching, surfaces
 
 
-def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int],
-         su_verb_idxs: tuple[int, int], obj_verb_idxs: tuple[int, int]):
+def json_string(matching: Matching, surfaces: list[Realized]):
+    return json.dumps({'matching': matching, 'surfaces': surfaces})
+
+
+def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: tuple[int, int],
+         obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None):
     all_nouns = lexicon.de_nouns
     su_verbs = lexicon.subj_control_verbs_present_tense
     su_verbs_inf = lexicon.subj_control_verbs_inf
@@ -183,13 +194,8 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int],
                   su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
                   obj_verbs=obj_verbs[obj_verb_l:obj_verb_r],
                   obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r])
-    trees, realized, matchings = get_grammar(max_depth=max_depth)
-    string_trees = get_string_trees(trees)
     if os.path.isfile(out_fn):
         os.remove(out_fn)
-    with open(out_fn, 'wb') as out_file:
-        pickle.dump({'trees': trees, 'realizations': realized, 'matchings': matchings}, out_file)
-
-# my_main_train = main(max_depth=5, out_fn='../synt_nl2i_eval_torch/data/grammars/example_control_train.p',
-#                      noun_idxs=(100,200), su_verb_idxs=(), obj_verb_idxs=())
-# my_main = main(max_depth=5, out_fn='../synt_nl2i_eval_torch/data/grammars/example_control.p')
+    with open(out_fn, 'a') as out_file:
+        for i, (matching, surfaces) in enumerate(get_grammar(max_depth, num_samples)):
+            out_file.write(json_string(matching, surfaces) + '\n')
