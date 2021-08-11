@@ -1,6 +1,7 @@
 from ...mcfg import Category, CategoryMeta, Tree, AbsTree, AbsRule
 from typing import Union, Iterator, Sequence
 from typing import Optional as Maybe
+from random import choice as choose
 from itertools import product
 
 LabeledNode = tuple[Maybe[int], Maybe[int],  CategoryMeta]
@@ -62,13 +63,27 @@ def project_tree(tree: LabeledTree) -> list[CategoryMeta]:
     return sum([project_tree(c) for c in children], [])
 
 
-def has_no_duplicates(choices: list[Category], exclude: set[CategoryMeta] = frozenset()):
+def has_no_duplicates(choices: Sequence[Category], exclude: set[CategoryMeta] = frozenset()):
     short_list = list(filter(lambda l: type(l) not in exclude, choices))
     return len(set(short_list)) == len(short_list)
 
 
 def get_choices(leaves: list[CategoryMeta], exclude: set[CategoryMeta] = frozenset()) -> Iterator[tuple[Category, ...]]:
     return filter(lambda choice: has_no_duplicates(choice, exclude), product(*map(lambda cat: cat.constants, leaves)))
+
+
+def sample_choices(
+        leaves: list[CategoryMeta], n: int, exclude: set[CategoryMeta] = frozenset()) -> Iterator[tuple[Category, ...]]:
+    returned = set()
+    limit = 0
+    while len(returned) < n and limit < n ** 2:
+        limit += 1
+        choice = tuple([choose(cat.constants) for cat in leaves])
+        if not has_no_duplicates(choice, exclude):
+            continue
+        if choice not in returned:
+            returned.add(choice)
+            yield tuple(choice)
 
 
 def realize_span(leaves: Sequence[Category], span_realization: SpanRealization) -> Realized:
