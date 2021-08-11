@@ -1,8 +1,7 @@
 import os
-from .config import data_folder
 
-de_noun_fn = os.path.join(data_folder, 'processed/de_personen.txt')
-het_noun_fn = os.path.join(data_folder, 'processed/het_personen.txt')
+de_noun_fn = os.path.join('./data/processed/de_personen.txt')
+het_noun_fn = os.path.join('./data/processed/het_personen.txt')
 de_nouns = [ln.strip() for ln in open(de_noun_fn, 'r').readlines()]
 het_nouns = [ln.strip() for ln in open(het_noun_fn, 'r').readlines()]
 
