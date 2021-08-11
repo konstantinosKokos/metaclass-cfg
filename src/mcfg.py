@@ -1,6 +1,6 @@
-from typing import Union, TypeVar
+from typing import Union, TypeVar, Iterator
 from dataclasses import dataclass
-from itertools import product
+from itertools import product, tee
 
 
 class Category:
@@ -87,15 +87,22 @@ class AbsGrammar:
         self.rules = rules
         self.multiplicity = max(map(lambda rule: rule.multiplicity, rules))
 
-    def generate(self, goal: CategoryMeta, depth: int, filter_empty: bool = True) -> list[AbsTree]:
+    def generate(self, goal: CategoryMeta, depth: int, filter_empty: bool = True) -> Iterator[AbsTree]:
         ret = self.induction([goal], depth + 1)
-        return list(filter(realizable, ret)) if filter_empty else ret
+        return filter(realizable, ret) if filter_empty else ret
 
-    def induction(self, options: list[AbsTree], depth: int) -> list[AbsTree]:
-        return [] if depth == 0 else options + self.induction(self.expand_options(options), depth - 1)
+    def induction(self, options: Iterator[AbsTree], depth: int) -> Iterator[AbsTree]:
+        if depth == 0:
+            yield from []
+        else:
+            options, expand = tee(options, 2)
+            yield from options
+            yield from self.induction(self.expand_options(expand), depth - 1)
 
-    def expand_options(self, options: list[AbsTree]) -> list[AbsTree]:
-        return [expand for option in options for expand in self.expand_tree(option)]
+    def expand_options(self, options: Iterator[AbsTree]) -> Iterator[AbsTree]:
+        for option in options:
+            for expand in self.expand_tree(option):
+                yield expand
 
     def expand_tree(self, tree: AbsTree) -> list[AbsTree]:
         if isinstance(tree, CategoryMeta):
