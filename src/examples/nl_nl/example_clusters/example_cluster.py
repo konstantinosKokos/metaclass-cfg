@@ -25,6 +25,9 @@ Recursive control verb clusters in embedded clauses:
 "(Iemand ziet) de man de vrouw beloven een biertje te drinken" ?
 "(Iemand ziet) de man de vrouw beloven de kinderen een biertje te laten drinken" ?
 
+Indirect object can be left out without changing the understood subject within the cluster
+Example: Omdat hij mij de kraanvogels hielp (te) vergiftigen
+Example: Omdat hij de kraanvogels hielp (te) vergiftigen
 
 de man dansen
 
