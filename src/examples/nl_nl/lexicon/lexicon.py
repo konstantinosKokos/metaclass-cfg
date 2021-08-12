@@ -16,7 +16,7 @@ het_nouns = [ln.strip() for ln in open(het_noun_fn, 'r').readlines()]
 def load_control_verbs(fn: str) -> tuple[list[str], list[str]]:
     with open(fn, 'r') as infile:
         verbs_present, verbs_inf = zip(*[ln.strip().split('\t') for ln in infile.readlines()])
-    return verbs_present, verbs_inf
+    return list(verbs_present), list(verbs_inf)
 
 
 obj_control_verbs_present, obj_control_verbs_inf = load_control_verbs(obj_cv_fn)

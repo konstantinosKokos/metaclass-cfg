@@ -37,7 +37,7 @@ from typing import Optional as Maybe
 from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
                                 project_tree, get_choices, realize_span, Matching, Realized, sample_choices)
 from ..lexicon import lexicon
-from random import seed
+from random import seed, shuffle
 import json
 
 seed(42)
@@ -180,12 +180,17 @@ def json_string(matching: Matching, surfaces: list[Realized]):
 
 
 def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: tuple[int, int],
-         obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None):
+         obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None, seed_value: int = 2093523):
     all_nouns = lexicon.de_nouns
     su_verbs = lexicon.sub_control_verbs_present
     su_verbs_inf = lexicon.sub_control_verbs_inf
     obj_verbs = lexicon.obj_control_verbs_present
     obj_verbs_inf = lexicon.obj_control_verbs_inf
+    shuffle(all_nouns, seed(seed_value))
+    shuffle(su_verbs, seed(seed_value))
+    shuffle(su_verbs_inf, seed(seed_value))
+    shuffle(obj_verbs, seed(seed_value))
+    shuffle(obj_verbs_inf, seed(seed_value))
     (noun_l, noun_r) = noun_idxs
     (su_verb_l, su_verb_r) = su_verb_idxs
     (obj_verb_l, obj_verb_r) = obj_verb_idxs
