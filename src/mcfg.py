@@ -93,16 +93,13 @@ class AbsGrammar:
 
     def induction(self, options: Iterator[AbsTree], depth: int) -> Iterator[AbsTree]:
         if depth == 0:
-            yield from []
-        else:
-            options, expand = tee(options, 2)
-            yield from options
-            yield from self.induction(self.expand_options(expand), depth - 1)
+            return
+        options, expand = tee(options, 2)
+        yield from options
+        yield from self.induction(self.expand_options(expand), depth - 1)
 
     def expand_options(self, options: Iterator[AbsTree]) -> Iterator[AbsTree]:
-        for option in options:
-            for expand in self.expand_tree(option):
-                yield expand
+        return (expand for option in options for expand in self.expand_tree(option))
 
     def expand_tree(self, tree: AbsTree) -> list[AbsTree]:
         if isinstance(tree, CategoryMeta):
