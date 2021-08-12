@@ -37,10 +37,8 @@ from typing import Optional as Maybe
 from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
                                 project_tree, get_choices, realize_span, Matching, Realized, sample_choices)
 from ..lexicon import lexicon
-from random import seed
+from random import seed as set_seed
 import json
-
-seed(42)
 
 
 def map_tree(tree: Tree[CategoryMeta], f: Callable[[CategoryMeta], T]) -> Tree[T]:
@@ -180,7 +178,7 @@ def json_string(matching: Matching, surfaces: list[Realized]):
 
 
 def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: tuple[int, int],
-         obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None):
+         obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None, seed: Maybe[int] = None):
     all_nouns = lexicon.de_nouns
     su_verbs = lexicon.sub_control_verbs_present
     su_verbs_inf = lexicon.sub_control_verbs_inf
@@ -196,6 +194,8 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
                   obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r])
     if os.path.isfile(out_fn):
         os.remove(out_fn)
+    if seed is not None:
+        set_seed(seed)
     with open(out_fn, 'a') as out_file:
         for i, (matching, surfaces) in enumerate(get_grammar(max_depth, num_samples)):
             out_file.write(json_string(matching, surfaces) + '\n')
