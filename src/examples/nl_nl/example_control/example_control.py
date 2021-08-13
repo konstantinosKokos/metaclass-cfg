@@ -115,20 +115,33 @@ REL_obj_VERB.constants = ['negeert', 'verpleegt']
 # het kind garandeert (aan) het meisje (om) de jongen het biertje te laten drinken
 
 annotated_rules = [
-        ((S,            (CTRL,)),
-         (dict(),       (False,)),
+        ((S,                (CTRL,)),
+         (dict(),           (False,)),
          ([(0, 0)],)),
-        ((CTRL,         (NP_s, TV_su_ctrl, NP_o, VC)),
-         ({1: 0},       (False, False, False, 0)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((CTRL,         (NP_s, TV_obj_ctrl, NP_o, VC)),
-         ({1: 0},       (False, False, False, 2)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((VC,           (TE, INF)),
-         (dict(),       (False, True)),
-         ([(0, 0), (1, 0)],)),
-        ((INF,          (ITV_inf,)),
-         ({0: None},    (False,)),
+        ((CTRL,             (NP_s, TV_su_ctrl, NP_o, VC)),
+         ({1: 0},           (False, False, False, 0)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
+        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o, VC)),
+         ({1: 0},           (False, False, False, 2)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
+
+        ((CTRL,             (NP_s, TV_su_ctrl, NP_o, AUX_subj, VC)),
+         ({1: 0,
+           3: 0},           (False, False, False, False, 2)),
+         ([(0, 0), (1, 0), (2, 0), (4, 0), (3, 0), (4, 1)],)),
+        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) VC(te, winnen)
+        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) AUX_subj(laten) VC(te, winnen)
+        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) VC(te laten, beloven te mogen winnen)
+        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) AUX_subj(laten) VC(te laten, beloven te mogen winnen)
+        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o, AUX_obj, VC)),
+         ({1: 0,
+           3: 2},           (False, False, False, False, 0)),
+         ([(0, 0), (1, 0), (2, 0), (4, 0), (3, 0), (4, 1)],)),
+        ((VC,               (TE, INF)),
+         (dict(),           (False, True)),
+         ([(0, 0)], [(1, 0)])),
+        ((INF,              (ITV_inf,)),
+         ({0: None},        (False,)),
          ([(0, 0)],)),
         ((VC,               (INF_tv, TE)),
          ({0: None},        (False, False)),
@@ -151,8 +164,8 @@ annotated_rules = [
         ((NP_s,                 (NP_s, DIE, NP_o, REL_su_VERB)),
          ({3: 0},               (False, False, False, False)),
          ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((NP_s,         (NP_s, DIE, NP_o, REL_obj_VERB)),
-         ({3: 2},       (False, False, False, False)),
+        ((NP_s,                 (NP_s, DIE, NP_o, REL_obj_VERB)),
+         ({3: 2},               (False, False, False, False)),
          ([(0, 0), (1, 0), (2, 0), (3, 0)],))
 ]
 
@@ -181,13 +194,13 @@ def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str]
     INF_obj_ctrl.constants = obj_verbs_inf
 
 
-def get_grammar(max_depth: int, sample: Maybe[int] = None) -> Iterator[str]:
+def get_grammar(max_depth: int, sample: Maybe[int] = None, min_depth: int = 0) -> Iterator[str]:
     def choice_fn(c: list[CategoryMeta]):
         if sample is None:
             return get_choices(c, exclude_candidates)
         return sample_choices(c, sample, exclude_candidates)
 
-    for depth in range(max_depth):
+    for depth in range(min_depth, max_depth):
         for tree in grammar.generate(S, depth):
             labeled_tree = abstree_to_labeledtree(tree, n_candidates, v_candidates, iter(range(999)), iter(range(999)))
             realization = labeled_tree_to_realization(labeled_tree, surf_rules, [], [])[1]
