@@ -1,4 +1,4 @@
-from typing import Union, TypeVar, Iterator
+from typing import Union, TypeVar, Iterator, Callable
 from dataclasses import dataclass
 from itertools import product, tee
 
@@ -111,3 +111,10 @@ class AbsGrammar:
 
     def applicable(self, goal: CategoryMeta) -> list[AbsRule]:
         return [rule for rule in self.rules if rule.lhs == goal]
+
+
+def map_tree(tree: Tree[CategoryMeta], f: Callable[[CategoryMeta], T]) -> Tree[T]:
+    if isinstance(tree, CategoryMeta):
+        return f(tree)
+    head, children = tree
+    return f(head), tuple(map(lambda c: map_tree(c, f), children))

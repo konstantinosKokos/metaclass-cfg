@@ -31,7 +31,7 @@ TV_inf -> 'drinken', 'eten'
 
 
 import os.path
-from ....mcfg import CategoryMeta, AbsRule, AbsGrammar, AbsTree, Tree, T
+from ....mcfg import CategoryMeta, AbsRule, AbsGrammar, AbsTree, Tree, T, map_tree
 from typing import Callable, Iterator
 from typing import Optional as Maybe
 from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
@@ -40,13 +40,6 @@ from ..lexicon import Lexicon
 from random import seed as set_seed
 from random import shuffle
 import json
-
-
-def map_tree(tree: Tree[CategoryMeta], f: Callable[[CategoryMeta], T]) -> Tree[T]:
-    if isinstance(tree, CategoryMeta):
-        return f(tree)
-    head, children = tree
-    return f(head), tuple(map(lambda c: map_tree(c, f), children))
 
 
 # Categories

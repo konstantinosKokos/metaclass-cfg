@@ -1,5 +1,5 @@
 import os.path
-from ....mcfg import CategoryMeta, AbsRule, AbsGrammar, AbsTree, Tree, T
+from ....mcfg import CategoryMeta, AbsRule, AbsGrammar, AbsTree, Tree, T, map_tree
 from typing import Callable, Iterator
 from typing import Optional as Maybe
 from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
@@ -170,13 +170,6 @@ grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
 
 matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
 surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
-
-def map_tree(tree: Tree[CategoryMeta], f: Callable[[CategoryMeta], T]) -> Tree[T]:
-    if isinstance(tree, CategoryMeta):
-        return f(tree)
-    head, children = tree
-    return f(head), tuple(map(lambda c: map_tree(c, f), children))
-
 
 exclude_candidates = {TE}
 
