@@ -207,23 +207,25 @@ def json_string(matching: Matching, surfaces: list[Realized]):
 
 def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: tuple[int, int],
          obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None, seed: Maybe[int] = None):
-    all_nouns = Lexicon.de_nouns
-    su_verbs_inf = Lexicon.sub_control_verbs_inf
-    obj_verbs_inf = Lexicon.obj_control_verbs_inf
+    all_nouns = Lexicon.de_nouns()
+    su_verbs_inf = Lexicon.sub_control_verbs_inf()
+    obj_verbs_inf = Lexicon.obj_control_verbs_inf()
+
     if seed is not None:
-        shuffle(all_nouns, set_seed(seed))
-        shuffle(su_verbs_inf, set_seed(seed))
-        shuffle(obj_verbs_inf, set_seed(seed))
+        set_seed(seed)
+        shuffle(all_nouns)
+        shuffle(su_verbs_inf)
+        shuffle(obj_verbs_inf)
+
     (noun_l, noun_r) = noun_idxs
     (su_verb_l, su_verb_r) = su_verb_idxs
     (obj_verb_l, obj_verb_r) = obj_verb_idxs
     set_constants(nouns=all_nouns[noun_l:noun_r],
                   su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
                   obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r])
+
     if os.path.isfile(out_fn):
         os.remove(out_fn)
-    if seed is not None:
-        set_seed(seed)
     with open(out_fn, 'a') as out_file:
         for i, (matching, surfaces) in enumerate(get_grammar(max_depth, num_samples)):
             out_file.write(json_string(matching, surfaces) + '\n')
