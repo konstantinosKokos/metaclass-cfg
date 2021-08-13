@@ -1,6 +1,14 @@
-from ....mcfg import CategoryMeta, AbsRule, AbsGrammar
+import os.path
+from ....mcfg import CategoryMeta, AbsRule, AbsGrammar, AbsTree, Tree, T
+from typing import Callable, Iterator
+from typing import Optional as Maybe
 from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
-                                project_tree, get_choices, realize_span)
+                                project_tree, get_choices, realize_span, Matching, Realized, sample_choices)
+from ..lexicon import lexicon
+from random import seed as set_seed
+from random import shuffle
+import json
+
 
 """
 Pseudo-code for the description of the grammar.
@@ -83,7 +91,7 @@ VC = CategoryMeta('VC')
 NP_s.constants = ['de man', 'de vrouw', 'het kind']
 NP_s2.constants = ['de sollicitant', 'het meisje', 'de socialist']
 NP_o.constants = ['het biertje', 'een pizza']
-PREF.constants = ['(Iemand ziet)']
+PREF.constants = ['Iemand ziet']
 TE.constants = ['te']
 
 ITV_inf_action.constants = ['dansen', 'zingen']
@@ -163,14 +171,70 @@ grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
 matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
 surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
 
+def map_tree(tree: Tree[CategoryMeta], f: Callable[[CategoryMeta], T]) -> Tree[T]:
+    if isinstance(tree, CategoryMeta):
+        return f(tree)
+    head, children = tree
+    return f(head), tuple(map(lambda c: map_tree(c, f), children))
 
-def main(max_depth: int):
-    trees = [tree for depth in range(max_depth) for tree in grammar.generate(goal=S, depth=depth)]
-    labeled_trees = list(map(lambda t: abstree_to_labeledtree(t, n_candidates, v_candidates,
-                                                              iter(range(10)), iter(range(10))), trees))
-    realizations = list(map(lambda t: labeled_tree_to_realization(t, surf_rules, [], [])[1], labeled_trees))
-    matchings = list(map(lambda t: get_matchings(t, matching_rules), labeled_trees))
-    choices = list(map(lambda t: get_choices(project_tree(t)), labeled_trees))
-    realized = [[realize_span(option, span_realization[0]) for option in options]
-                for span_realization, options in zip(realizations, choices)]
-    return trees, realized, matchings
+
+exclude_candidates = {TE}
+
+
+def get_string_trees(trees: list[AbsTree]):
+    return list(map(lambda t: map_tree(t, lambda n: n.__name__), trees))
+
+
+def set_constants(nouns: list[str], su_verbs_inf: list[str], obj_verbs_inf: list[str]):
+    n_idx = len(nouns)//3
+    NP_s.constants = nouns[:n_idx]
+    NP_s2.constants = nouns[n_idx:2*n_idx]
+    NP_o.constants = nouns[2*n_idx:]
+
+    TV_su_inf_ctrl.constants = su_verbs_inf
+    TV_obj_inf_ctrl.constants = obj_verbs_inf
+
+
+def get_grammar(max_depth: int, sample: Maybe[int] = None) -> Iterator[str]:
+    def choice_fn(c: list[CategoryMeta]):
+        if sample is None:
+            return get_choices(c, exclude_candidates)
+        return sample_choices(c, sample, exclude_candidates)
+
+    for depth in range(max_depth):
+        for tree in grammar.generate(S, depth):
+            labeled_tree = abstree_to_labeledtree(tree, n_candidates, v_candidates, iter(range(999)), iter(range(999)))
+            realization = labeled_tree_to_realization(labeled_tree, surf_rules, [], [])[1]
+            matching = get_matchings(labeled_tree, matching_rules)
+            projection = project_tree(labeled_tree)
+            surfaces = [realize_span(choice, realization[0]) for choice in choice_fn(projection)]
+            # yield tree, labeled_tree, realization[0], matching, projection, surfaces
+            yield matching, surfaces
+
+
+def json_string(matching: Matching, surfaces: list[Realized]):
+    return json.dumps({'matching': matching, 'surfaces': surfaces})
+
+
+def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: tuple[int, int],
+         obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None, seed: Maybe[int] = None):
+    all_nouns = lexicon.de_nouns
+    su_verbs_inf = lexicon.sub_control_verbs_inf
+    obj_verbs_inf = lexicon.obj_control_verbs_inf
+    if seed is not None:
+        shuffle(all_nouns, set_seed(seed))
+        shuffle(su_verbs_inf, set_seed(seed))
+        shuffle(obj_verbs_inf, set_seed(seed))
+    (noun_l, noun_r) = noun_idxs
+    (su_verb_l, su_verb_r) = su_verb_idxs
+    (obj_verb_l, obj_verb_r) = obj_verb_idxs
+    set_constants(nouns=all_nouns[noun_l:noun_r],
+                  su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
+                  obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r])
+    if os.path.isfile(out_fn):
+        os.remove(out_fn)
+    if seed is not None:
+        set_seed(seed)
+    with open(out_fn, 'a') as out_file:
+        for i, (matching, surfaces) in enumerate(get_grammar(max_depth, num_samples)):
+            out_file.write(json_string(matching, surfaces) + '\n')
