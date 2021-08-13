@@ -31,8 +31,8 @@ TV_inf -> 'drinken', 'eten'
 
 
 import os.path
-from ....mcfg import CategoryMeta, AbsRule, AbsGrammar, AbsTree, Tree, T, map_tree
-from typing import Callable, Iterator
+from ....mcfg import CategoryMeta, AbsRule, AbsGrammar
+from typing import Iterator
 from typing import Optional as Maybe
 from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
                                 project_tree, get_choices, realize_span, Matching, Realized, sample_choices)
@@ -159,7 +159,6 @@ def get_grammar(max_depth: int, sample: Maybe[int] = None) -> Iterator[str]:
             matching = get_matchings(labeled_tree, matching_rules)
             projection = project_tree(labeled_tree)
             surfaces = [realize_span(choice, realization[0]) for choice in choice_fn(projection)]
-            # yield tree, labeled_tree, realization[0], matching, projection, surfaces
             yield matching, surfaces
 
 
@@ -186,7 +185,6 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
     (noun_l, noun_r) = noun_idxs
     (su_verb_l, su_verb_r) = su_verb_idxs
     (obj_verb_l, obj_verb_r) = obj_verb_idxs
-    print(all_nouns[noun_l:noun_r])
     set_constants(nouns=all_nouns[noun_l:noun_r],
                   su_verbs=su_verbs[su_verb_l:su_verb_r],
                   su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
