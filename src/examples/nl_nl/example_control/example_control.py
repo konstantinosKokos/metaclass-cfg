@@ -133,10 +133,6 @@ surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in ann
 exclude_candidates = {DIE, TE}
 
 
-def get_string_trees(trees: list[AbsTree]):
-    return list(map(lambda t: map_tree(t, lambda n: n.__name__), trees))
-
-
 def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str],
                   obj_verbs: list[str], obj_verbs_inf: list[str]):
     n_idx = len(nouns)//3
