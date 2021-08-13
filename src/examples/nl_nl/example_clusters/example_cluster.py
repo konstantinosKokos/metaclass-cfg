@@ -4,7 +4,7 @@ from typing import Callable, Iterator
 from typing import Optional as Maybe
 from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
                                 project_tree, get_choices, realize_span, Matching, Realized, sample_choices)
-from ..lexicon import lexicon
+from ..lexicon import Lexicon
 from random import seed as set_seed
 from random import shuffle
 import json
