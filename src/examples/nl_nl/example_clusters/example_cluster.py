@@ -218,9 +218,9 @@ def json_string(matching: Matching, surfaces: list[Realized]):
 
 def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: tuple[int, int],
          obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None, seed: Maybe[int] = None):
-    all_nouns = lexicon.de_nouns
-    su_verbs_inf = lexicon.sub_control_verbs_inf
-    obj_verbs_inf = lexicon.obj_control_verbs_inf
+    all_nouns = Lexicon.de_nouns
+    su_verbs_inf = Lexicon.sub_control_verbs_inf
+    obj_verbs_inf = Lexicon.obj_control_verbs_inf
     if seed is not None:
         shuffle(all_nouns, set_seed(seed))
         shuffle(su_verbs_inf, set_seed(seed))
