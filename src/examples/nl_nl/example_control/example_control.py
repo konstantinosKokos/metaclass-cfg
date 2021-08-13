@@ -46,7 +46,7 @@ import json
 S = CategoryMeta('S')
 CTRL = CategoryMeta('CTRL')
 
-VC = CategoryMeta('VC')
+VC = CategoryMeta('VC', 2)
 INF = CategoryMeta('INF')
 INF_tv = CategoryMeta('INF_tv', 2)
 
@@ -63,6 +63,8 @@ INF_su_ctrl = CategoryMeta('INF_su_ctrl')
 INF_obj_ctrl = CategoryMeta('INF_obj_ctrl')
 ITV_inf = CategoryMeta('ITV_inf')
 TV_inf = CategoryMeta('TV_inf')
+AUX_subj = CategoryMeta('AUX_subj')
+AUX_obj = CategoryMeta('AUX_obj')
 DIE = CategoryMeta('DIE')
 REL_su_VERB = CategoryMeta('REL_su_VERB')
 REL_obj_VERB = CategoryMeta('REL_obj_VERB')
@@ -82,12 +84,35 @@ TV_obj_ctrl.constants = ['vraagt', 'dwingt']
 INF_su_ctrl.constants = ['beloven', 'garanderen']
 INF_obj_ctrl.constants = ['vragen', 'dwingen']
 
+AUX_subj.constants = ['laten']
+AUX_obj.constants = ['doen']
+
 INF_tv.constants = [('het biertje', 'drinken'), ('een pizza', 'eten')]
 DIE.constants = ['die']
 
 REL_su_VERB.constants = ['helpt', 'bijstaat']
 REL_obj_VERB.constants = ['negeert', 'verpleegt']
 
+""" CTRL,         (NP_s, TV_su_ctrl, NP_o, VC)
+                    de man belooft de vrouw te winnen
+    CTRL,         (NP_s, TV_su_ctrl, NP_o, AUX_subj, VC_subj)
+                    de man belooft de vrouw te laten winnen
+    CTRL,         (NP_s, TV_obj_ctrl, NP_o, AUX_obj, VC_obj)
+                    de man vraagt de vrouw te mogen winnen
+                    FUCK
+                    
+    VC_subj,
+    de man vraagt/belooft de vrouw VC
+    VC -> te winnen
+    VC_special -> te laten/mogen winnen
+    
+    de man vraagt de vrouw VC[de persoon te laten, beloven VC[te mogen, winnen]]
+    
+ """
+
+
+# todo: AUX in CTRL requires both object and indirect object:
+# het kind garandeert (aan) het meisje (om) de jongen het biertje te laten drinken
 
 annotated_rules = [
         ((S,            (CTRL,)),
@@ -105,17 +130,26 @@ annotated_rules = [
         ((INF,          (ITV_inf,)),
          ({0: None},    (False,)),
          ([(0, 0)],)),
-        ((VC,           (INF_tv, TE)),
-         ({0: None},    (False, False)),
-         ([(0, 0), (1, 0), (0, 1)],)),
-        ((VC,           (NP_o2, TE, INF_su_ctrl, VC)),
-         ({2: None},    (False, False, False, True)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((VC,           (NP_o2, TE, INF_obj_ctrl, VC)),
-         ({2: None},    (False, False, False, 0)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((NP_s,         (NP_s, DIE, NP_o, REL_su_VERB)),
-         ({3: 0},       (False, False, False, False)),
+        ((VC,               (INF_tv, TE)),
+         ({0: None},        (False, False)),
+         ([(0, 0), (1, 0)], [(0, 1)])),
+        ((VC,               (NP_o2, TE, INF_su_ctrl, VC)),
+         ({2: None},        (False, False, False, True)),
+         ([(0, 0), (1, 0)], [(2, 0), (3, 0), (3, 1)])),
+        ((VC,               (NP_o2, TE, INF_obj_ctrl, VC)),
+         ({2: None},        (False, False, False, 0)),
+         ([(0, 0), (1, 0)], [(2, 0), (3, 0), (3, 1)])),
+        ((VC,               (NP_o2, TE, INF_su_ctrl, AUX_subj, VC)),
+         ({2: None,
+           3: None},        (False, False, False, False, True)),
+         ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
+        ((VC,               (NP_o2, TE, INF_obj_ctrl, AUX_obj, VC)),
+         ({2: None,
+           3: None},        (False, False, False, False, 0)),
+         ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
+
+        ((NP_s,                 (NP_s, DIE, NP_o, REL_su_VERB)),
+         ({3: 0},               (False, False, False, False)),
          ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
         ((NP_s,         (NP_s, DIE, NP_o, REL_obj_VERB)),
          ({3: 2},       (False, False, False, False)),
@@ -123,7 +157,8 @@ annotated_rules = [
 ]
 
 n_candidates = {NP_s, NP_o, NP_o2}
-v_candidates = {TV_su_ctrl, TV_obj_ctrl, ITV_inf, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB, REL_obj_VERB, INF_tv}
+v_candidates = {TV_su_ctrl, TV_obj_ctrl, ITV_inf, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB,
+                REL_obj_VERB, INF_tv, AUX_subj, AUX_obj}
 
 grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
 
