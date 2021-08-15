@@ -88,26 +88,20 @@ class AbsGrammar:
         self.multiplicity = max(map(lambda rule: rule.multiplicity, rules))
 
     def generate(self, goal: CategoryMeta, depth: int, filter_empty: bool = True) -> Iterator[AbsTree]:
-        ret = self.induction([goal], depth + 1)
+        ret = self.expand_tree(goal, depth)
         return filter(realizable, ret) if filter_empty else ret
 
-    def induction(self, options: Iterator[AbsTree], depth: int) -> Iterator[AbsTree]:
-        if depth == 0:
+    def expand_tree(self, tree: AbsTree, depth: int) -> Iterator[AbsTree]:
+        if depth < 0:
             return
-        options, expand = tee(options, 2)
-        yield from options
-        yield from self.induction(self.expand_options(expand), depth - 1)
-
-    def expand_options(self, options: Iterator[AbsTree]) -> Iterator[AbsTree]:
-        return (expand for option in options for expand in self.expand_tree(option))
-
-    def expand_tree(self, tree: AbsTree) -> list[AbsTree]:
         if isinstance(tree, CategoryMeta):
-            return [(rule.lhs, rule.rhs) for rule in self.applicable(tree)]
-        top, children = tree
-        branch_options = tuple(map(lambda branch: self.expand_tree(branch) + [branch], children))
-        rs = [(top, prod) for prod in product(*branch_options)]
-        return [r for r in rs if r != tree]
+            yield tree
+            for rule in self.applicable(tree):
+                yield from self.expand_tree((tree, rule.rhs), depth - 1)
+        else:
+            root, children = tree
+            options = product(*[list(self.expand_tree(c, depth)) for c in children])
+            yield from ((root, p) for p in options)
 
     def applicable(self, goal: CategoryMeta) -> list[AbsRule]:
         return [rule for rule in self.rules if rule.lhs == goal]
