@@ -46,7 +46,7 @@ import json
 S = CategoryMeta('S')
 CTRL = CategoryMeta('CTRL')
 
-VC = CategoryMeta('VC')
+VC = CategoryMeta('VC', 2)
 INF = CategoryMeta('INF')
 INF_tv = CategoryMeta('INF_tv', 2)
 
@@ -63,6 +63,8 @@ INF_su_ctrl = CategoryMeta('INF_su_ctrl')
 INF_obj_ctrl = CategoryMeta('INF_obj_ctrl')
 ITV_inf = CategoryMeta('ITV_inf')
 TV_inf = CategoryMeta('TV_inf')
+AUX_subj = CategoryMeta('AUX_subj')
+AUX_obj = CategoryMeta('AUX_obj')
 DIE = CategoryMeta('DIE')
 REL_su_VERB = CategoryMeta('REL_su_VERB')
 REL_obj_VERB = CategoryMeta('REL_obj_VERB')
@@ -82,48 +84,94 @@ TV_obj_ctrl.constants = ['vraagt', 'dwingt']
 INF_su_ctrl.constants = ['beloven', 'garanderen']
 INF_obj_ctrl.constants = ['vragen', 'dwingen']
 
+AUX_subj.constants = ['laten']
+AUX_obj.constants = ['doen']
+
 INF_tv.constants = [('het biertje', 'drinken'), ('een pizza', 'eten')]
 DIE.constants = ['die']
 
 REL_su_VERB.constants = ['helpt', 'bijstaat']
 REL_obj_VERB.constants = ['negeert', 'verpleegt']
 
+""" CTRL,         (NP_s, TV_su_ctrl, NP_o, VC)
+                    de man belooft de vrouw te winnen
+    CTRL,         (NP_s, TV_su_ctrl, NP_o, AUX_subj, VC_subj)
+                    de man belooft de vrouw te laten winnen
+    CTRL,         (NP_s, TV_obj_ctrl, NP_o, AUX_obj, VC_obj)
+                    de man vraagt de vrouw te mogen winnen
+                    FUCK
+                    
+    VC_subj,
+    de man vraagt/belooft de vrouw VC
+    VC -> te winnen
+    VC_special -> te laten/mogen winnen
+    
+    de man vraagt de vrouw VC[de persoon te laten, beloven VC[te mogen, winnen]]
+    
+ """
+
+
+# todo: AUX in CTRL requires both object and indirect object:
+# het kind garandeert (aan) het meisje (om) de jongen het biertje te laten drinken
 
 annotated_rules = [
-        ((S,            (CTRL,)),
-         (dict(),       (False,)),
+        ((S,                (CTRL,)),
+         (dict(),           (False,)),
          ([(0, 0)],)),
-        ((CTRL,         (NP_s, TV_su_ctrl, NP_o, VC)),
-         ({1: 0},       (False, False, False, 0)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((CTRL,         (NP_s, TV_obj_ctrl, NP_o, VC)),
-         ({1: 0},       (False, False, False, 2)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((VC,           (TE, INF)),
-         (dict(),       (False, True)),
-         ([(0, 0), (1, 0)],)),
-        ((INF,          (ITV_inf,)),
-         ({0: None},    (False,)),
+        ((CTRL,             (NP_s, TV_su_ctrl, NP_o, VC)),
+         ({1: 0},           (False, False, False, 0)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
+        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o, VC)),
+         ({1: 0},           (False, False, False, 2)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
+
+        ((CTRL,             (NP_s, TV_su_ctrl, NP_o, AUX_subj, VC)),
+         ({1: 0,
+           3: 0},           (False, False, False, False, 2)),
+         ([(0, 0), (1, 0), (2, 0), (4, 0), (3, 0), (4, 1)],)),
+        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) VC(te, winnen)
+        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) AUX_subj(laten) VC(te, winnen)
+        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) VC(te laten, beloven te mogen winnen)
+        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) AUX_subj(laten) VC(te laten, beloven te mogen winnen)
+        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o, AUX_obj, VC)),
+         ({1: 0,
+           3: 2},           (False, False, False, False, 0)),
+         ([(0, 0), (1, 0), (2, 0), (4, 0), (3, 0), (4, 1)],)),
+        ((VC,               (TE, INF)),
+         (dict(),           (False, True)),
+         ([(0, 0)], [(1, 0)])),
+        ((INF,              (ITV_inf,)),
+         ({0: None},        (False,)),
          ([(0, 0)],)),
-        ((VC,           (INF_tv, TE)),
-         ({0: None},    (False, False)),
-         ([(0, 0), (1, 0), (0, 1)],)),
-        ((VC,           (NP_o2, TE, INF_su_ctrl, VC)),
-         ({2: None},    (False, False, False, True)),
+        ((VC,               (INF_tv, TE)),
+         ({0: None},        (False, False)),
+         ([(0, 0), (1, 0)], [(0, 1)])),
+        ((VC,               (NP_o2, TE, INF_su_ctrl, VC)),
+         ({2: None},        (False, False, False, True)),
+         ([(0, 0), (1, 0)], [(2, 0), (3, 0), (3, 1)])),
+        ((VC,               (NP_o2, TE, INF_obj_ctrl, VC)),
+         ({2: None},        (False, False, False, 0)),
+         ([(0, 0), (1, 0)], [(2, 0), (3, 0), (3, 1)])),
+        ((VC,               (NP_o2, TE, INF_su_ctrl, AUX_subj, VC)),
+         ({2: None,
+           3: None},        (False, False, False, False, True)),
+         ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
+        ((VC,               (NP_o2, TE, INF_obj_ctrl, AUX_obj, VC)),
+         ({2: None,
+           3: None},        (False, False, False, False, 0)),
+         ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
+
+        ((NP_s,                 (NP_s, DIE, NP_o, REL_su_VERB)),
+         ({3: 0},               (False, False, False, False)),
          ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((VC,           (NP_o2, TE, INF_obj_ctrl, VC)),
-         ({2: None},    (False, False, False, 0)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((NP_s,         (NP_s, DIE, NP_o, REL_su_VERB)),
-         ({3: 0},       (False, False, False, False)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((NP_s,         (NP_s, DIE, NP_o, REL_obj_VERB)),
-         ({3: 2},       (False, False, False, False)),
+        ((NP_s,                 (NP_s, DIE, NP_o, REL_obj_VERB)),
+         ({3: 2},               (False, False, False, False)),
          ([(0, 0), (1, 0), (2, 0), (3, 0)],))
 ]
 
 n_candidates = {NP_s, NP_o, NP_o2}
-v_candidates = {TV_su_ctrl, TV_obj_ctrl, ITV_inf, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB, REL_obj_VERB, INF_tv}
+v_candidates = {TV_su_ctrl, TV_obj_ctrl, ITV_inf, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB,
+                REL_obj_VERB, INF_tv, AUX_subj, AUX_obj}
 
 grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
 
@@ -146,13 +194,13 @@ def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str]
     INF_obj_ctrl.constants = obj_verbs_inf
 
 
-def get_grammar(max_depth: int, sample: Maybe[int] = None) -> Iterator[str]:
+def get_grammar(max_depth: int, sample: Maybe[int] = None, min_depth: int = 0) -> Iterator[str]:
     def choice_fn(c: list[CategoryMeta]):
         if sample is None:
             return get_choices(c, exclude_candidates)
         return sample_choices(c, sample, exclude_candidates)
 
-    for depth in range(max_depth):
+    for depth in range(min_depth, max_depth):
         for tree in grammar.generate(S, depth):
             labeled_tree = abstree_to_labeledtree(tree, n_candidates, v_candidates, iter(range(999)), iter(range(999)))
             realization = labeled_tree_to_realization(labeled_tree, surf_rules, [], [])[1]

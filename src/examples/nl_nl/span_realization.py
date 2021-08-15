@@ -114,4 +114,8 @@ def labeled_tree_to_realization(
     for child in children:
         offset, branch_realization = _f(child, offset)
         branch_realizations.append(branch_realization)
-    return offset, [sum([branch_realizations[idx][crd] for idx, crd in res_crd], []) for res_crd in surf_rule]
+    try:
+        return offset, [sum([branch_realizations[idx][crd] for idx, crd in res_crd], []) for res_crd in surf_rule]
+    except IndexError:
+        import pdb
+        pdb.set_trace()

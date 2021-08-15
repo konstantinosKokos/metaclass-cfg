@@ -184,20 +184,19 @@ def set_constants(nouns: list[str], su_verbs_inf: list[str], obj_verbs_inf: list
     TV_obj_inf_ctrl.constants = obj_verbs_inf
 
 
-def get_grammar(max_depth: int, sample: Maybe[int] = None) -> Iterator[str]:
+def get_grammar(max_depth: int, sample: Maybe[int] = None, min_depth: int = 0) -> Iterator[str]:
     def choice_fn(c: list[CategoryMeta]):
         if sample is None:
             return get_choices(c, exclude_candidates)
         return sample_choices(c, sample, exclude_candidates)
 
-    for depth in range(max_depth):
+    for depth in range(min_depth, max_depth):
         for tree in grammar.generate(S, depth):
             labeled_tree = abstree_to_labeledtree(tree, n_candidates, v_candidates, iter(range(999)), iter(range(999)))
             realization = labeled_tree_to_realization(labeled_tree, surf_rules, [], [])[1]
             matching = get_matchings(labeled_tree, matching_rules)
             projection = project_tree(labeled_tree)
             surfaces = [realize_span(choice, realization[0]) for choice in choice_fn(projection)]
-            # yield tree, labeled_tree, realization[0], matching, projection, surfaces
             yield matching, surfaces
 
 
