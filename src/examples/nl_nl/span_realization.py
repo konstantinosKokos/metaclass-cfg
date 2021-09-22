@@ -1,4 +1,4 @@
-from ...mcfg import Category, CategoryMeta, Tree, AbsTree, AbsRule
+from ...mcfg import Category, CategoryMeta, Tree, AbsTree, AbsRule, AbsGrammar
 from typing import Union, Iterator, Sequence
 from typing import Optional as Maybe
 from random import choice as choose
@@ -119,3 +119,33 @@ def labeled_tree_to_realization(
     except IndexError:
         import pdb
         pdb.set_trace()
+
+
+def exhaust_grammar(
+        grammar: AbsGrammar,
+        terminal: CategoryMeta,
+        surface_rules: dict[AbsRule, tuple[list[tuple[int, int]], ...]],
+        matching_rules:  dict[AbsRule, tuple[dict[int, Maybe[int]], tuple[Union[bool, int], ...]]],
+        max_depth: int,
+        nouns: set[CategoryMeta],
+        verbs: set[CategoryMeta],
+        sample: Maybe[int] = None,
+        min_depth: int = 0,
+        exclude_candidates: set[CategoryMeta] = frozenset()):
+    def choice_fn(c: list[CategoryMeta]):
+        if sample is None:
+            return get_choices(c, exclude_candidates)
+        return sample_choices(c, sample, exclude_candidates)
+
+    def exhaust_tree(_tree: AbsTree):
+        labeled_tree = abstree_to_labeledtree(_tree, nouns, verbs, iter(range(999)), iter(range(999)))
+        realization = labeled_tree_to_realization(labeled_tree, surface_rules, [], [])[1]
+        matching = get_matchings(labeled_tree, matching_rules)
+        projection = project_tree(labeled_tree)
+        surfaces = [realize_span(choice, realization[0]) for choice in choice_fn(projection)]
+        return labeled_tree, (matching, surfaces)
+
+    def exhaust_depth(_depth: int):
+        return {k: vs for k, vs in map(exhaust_tree, grammar.generate(terminal, _depth))}
+
+    return {depth: exhaust_depth(depth) for depth in range(min_depth, max_depth)}

@@ -34,8 +34,8 @@ import os.path
 from ....mcfg import CategoryMeta, AbsRule, AbsGrammar
 from typing import Iterator
 from typing import Optional as Maybe
-from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings,
-                                project_tree, get_choices, realize_span, Matching, Realized, sample_choices)
+from ..span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings, project_tree,
+                                get_choices, realize_span, Matching, Realized, sample_choices, exhaust_grammar)
 from ..lexicon import Lexicon
 from random import seed as set_seed
 from random import shuffle
@@ -194,20 +194,9 @@ def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str]
     INF_obj_ctrl.constants = obj_verbs_inf
 
 
-def get_grammar(max_depth: int, sample: Maybe[int] = None, min_depth: int = 0) -> Iterator[str]:
-    def choice_fn(c: list[CategoryMeta]):
-        if sample is None:
-            return get_choices(c, exclude_candidates)
-        return sample_choices(c, sample, exclude_candidates)
-
-    for depth in range(min_depth, max_depth):
-        for tree in grammar.generate(S, depth):
-            labeled_tree = abstree_to_labeledtree(tree, n_candidates, v_candidates, iter(range(999)), iter(range(999)))
-            realization = labeled_tree_to_realization(labeled_tree, surf_rules, [], [])[1]
-            matching = get_matchings(labeled_tree, matching_rules)
-            projection = project_tree(labeled_tree)
-            surfaces = [realize_span(choice, realization[0]) for choice in choice_fn(projection)]
-            yield matching, surfaces
+def get_grammar(max_depth: int, sample: Maybe[int], min_depth: int = 0):
+    return exhaust_grammar(grammar, S, surf_rules, matching_rules, max_depth, n_candidates,
+                           v_candidates, sample, min_depth, exclude_candidates)
 
 
 def json_string(matching: Matching, surfaces: list[Realized]):
@@ -242,5 +231,5 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
     if os.path.isfile(out_fn):
         os.remove(out_fn)
     with open(out_fn, 'a') as out_file:
-        for i, (matching, surfaces) in enumerate(get_grammar(max_depth, num_samples)):
+        for i, (matching, surfaces) in enumerate(exhaust_grammar(max_depth, num_samples)):
             out_file.write(json_string(matching, surfaces) + '\n')
