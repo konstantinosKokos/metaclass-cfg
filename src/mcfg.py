@@ -36,7 +36,7 @@ class CategoryMeta(type):
         super(CategoryMeta, cls).__init__(arity)
 
     def __hash__(cls) -> int:
-        return hash((cls.__name__, cls.arity))
+        return hash((str(cls), cls.arity))
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, CategoryMeta) and hash(self) == hash(other)
@@ -49,6 +49,8 @@ class CategoryMeta(type):
     def constants(cls, values: list[Union[str, tuple[str, ...]]]) -> None:
         cls._constants = list(map(cls, values)) if cls.arity == 1 else list(map(lambda val: cls(*val), values))
 
+    def __str__(cls) -> str:
+        return cls.__name__
 
 @dataclass(unsafe_hash=True)
 class AbsRule:
