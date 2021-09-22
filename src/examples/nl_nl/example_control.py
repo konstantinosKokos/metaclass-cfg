@@ -32,10 +32,8 @@ TV_inf -> 'drinken', 'eten'
 
 import os.path
 from ...mcfg import CategoryMeta, AbsRule, AbsGrammar
-from typing import Iterator
 from typing import Optional as Maybe
-from .span_realization import (abstree_to_labeledtree, labeled_tree_to_realization, get_matchings, project_tree,
-                               get_choices, realize_span, Matching, Realized, sample_choices, exhaust_grammar)
+from .span_realization import Matching, Realized, exhaust_grammar
 from .lexicon import Lexicon
 from random import seed as set_seed
 from random import shuffle
