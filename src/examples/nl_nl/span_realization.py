@@ -131,13 +131,14 @@ def exhaust_grammar(
         verbs: set[CategoryMeta],
         sample: Maybe[int] = None,
         min_depth: int = 0,
-        exclude_candidates: set[CategoryMeta] = frozenset()):
-    def choice_fn(c: list[CategoryMeta]):
+        exclude_candidates: set[CategoryMeta] = frozenset()) \
+        -> dict[int, dict[LabeledTree, tuple[Matching, list[Realized]]]]:
+    def choice_fn(c: list[CategoryMeta]) -> Iterator[tuple[Category, ...]]:
         if sample is None:
             return get_choices(c, exclude_candidates)
         return sample_choices(c, sample, exclude_candidates)
 
-    def exhaust_tree(_tree: AbsTree):
+    def exhaust_tree(_tree: AbsTree) -> tuple[LabeledTree, tuple[Matching, list[Realized]]]:
         labeled_tree = abstree_to_labeledtree(_tree, nouns, verbs, iter(range(999)), iter(range(999)))
         realization = labeled_tree_to_realization(labeled_tree, surface_rules, [], [])[1]
         matching = get_matchings(labeled_tree, matching_rules)
@@ -145,7 +146,7 @@ def exhaust_grammar(
         surfaces = [realize_span(choice, realization[0]) for choice in choice_fn(projection)]
         return labeled_tree, (matching, surfaces)
 
-    def exhaust_depth(_depth: int):
+    def exhaust_depth(_depth: int) -> dict[LabeledTree: tuple[Matching, list[Realized]]]:
         return {k: vs for k, vs in map(exhaust_tree, grammar.generate(terminal, _depth))}
 
     return {depth: exhaust_depth(depth) for depth in range(min_depth, max_depth)}
