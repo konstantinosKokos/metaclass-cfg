@@ -137,6 +137,15 @@ Example: Omdat hij mij de kraanvogels hielp (te) vergiftigen
 Example: Omdat hij de kraanvogels hielp (te) vergiftigen
 """
 
+"""
+    S(XYZ) -> PREF(X) EMB(Y, Z)
+    EMB(X, Y) -> NP_s(X) ITV_inf_action(Y)
+    EMB(XY, Z) -> NP_s(X) NP_o(Y) TV_inf_action(Z)
+    EMB(XY, ZU) -> NP_s(X), TV_inf_sense(Z), EMB(Y, U)
+    EMB(XY, ZU) -> NP_s(X) NP_s2(Y) TV_inf_ctrl(Z) VC(U)
+    VC(XY) -> TE(X) ITV_inf_action(Y)
+"""
+
 annotated_rules = [
         ((S,            (PREF, EMB)),
          (dict(),       (False, False)),

@@ -107,7 +107,16 @@ REL_obj_VERB.constants = ['negeert', 'verpleegt']
     de man vraagt de vrouw VC[de persoon te laten, beloven VC[te mogen, winnen]]
     
  """
+"""
+    S(X) -> CTRL(X)
+    CTRL(XYZUV) -> NP_s(X) TV(Y) NP_o(Z) VC(U, V)
+    CTRL(XYZUVW) -> NP_s(X) TV(Y) NP_o(Z) AUX(V) VC(U, W)
+    VC(XY, Z) -> INF_tv(X, Z), TE(Y) 
+    VC(XY, ZUV) -> NP_o2(X) TE(Y) INF_ctrl(Z) VC(U, V)
+    VC(XYZ, UVW) -> NP_o2(X) TE(Y) INF_ctrl(U) AUX(Z) VC(V, W) 
+    NP_s(XYZU) -> NP_s(X) DIE(Y) NP_o(Z) REL(U)
 
+ """
 
 # todo: AUX in CTRL requires both object and indirect object:
 # het kind garandeert (aan) het meisje (om) de jongen het biertje te laten drinken
