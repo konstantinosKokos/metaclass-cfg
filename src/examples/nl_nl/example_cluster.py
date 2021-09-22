@@ -222,5 +222,7 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
     if os.path.isfile(out_fn):
         os.remove(out_fn)
     with open(out_fn, 'a') as out_file:
-        for i, (matching, surfaces) in enumerate(get_grammar(max_depth, num_samples)):
-            out_file.write(json_string(matching, surfaces) + '\n')
+        implemented = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
+                               for tree, (matching, surfaces) in trees.items()}
+                       for depth, trees in get_grammar(max_depth, num_samples)}
+        json.dump(implemented, out_file, indent=4)
