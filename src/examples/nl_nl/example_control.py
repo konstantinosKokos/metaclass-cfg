@@ -192,15 +192,18 @@ grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
 matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
 surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
 
-exclude_candidates = {DIE, TE}
+exclude_candidates = {DIE, TE, AUX_subj, AUX_obj}
 
 
 def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str],
                   obj_verbs: list[str], obj_verbs_inf: list[str]):
-    n_idx = len(nouns)//3
-    NP_s.constants = nouns[:n_idx]
-    NP_o.constants = nouns[n_idx:2*n_idx]
-    NP_o2.constants = nouns[2*n_idx:]
+    # n_idx = len(nouns)//3
+    NP.constants = nouns
+    # NP_o.constants = nouns
+    # NP_o2.constants = nouns
+    # NP_s.constants = nouns[:n_idx]
+    # NP_o.constants = nouns[n_idx:2*n_idx]
+    # NP_o2.constants = nouns[2*n_idx:]
 
     TV_su_ctrl.constants = su_verbs
     TV_obj_ctrl.constants = obj_verbs
@@ -248,5 +251,5 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
     with open(out_fn, 'a') as out_file:
         implemented = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
                                for tree, (matching, surfaces) in trees.items()}
-                       for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth)}
+                       for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth).items()}
         json.dump(implemented, out_file, indent=4)
