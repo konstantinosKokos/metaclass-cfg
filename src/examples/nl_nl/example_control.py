@@ -211,7 +211,8 @@ def json_string(matching: Matching, surfaces: list[Realized]):
 
 
 def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: tuple[int, int],
-         obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None, seed: Maybe[int] = None):
+         obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None, seed: Maybe[int] = None,
+         min_depth: int = 0):
     all_nouns = Lexicon.de_nouns()
     su_verbs = Lexicon.sub_control_verbs_present()
     su_verbs_inf = Lexicon.sub_control_verbs_inf()
@@ -240,5 +241,5 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
     with open(out_fn, 'a') as out_file:
         implemented = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
                                for tree, (matching, surfaces) in trees.items()}
-                       for depth, trees in get_grammar(max_depth, num_samples)}
+                       for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth)}
         json.dump(implemented, out_file, indent=4)
