@@ -54,14 +54,12 @@ NP = CategoryMeta('NP')
 NP_s = CategoryMeta('NP_s')
 NP_o = CategoryMeta('NP_o')
 NP_o2 = CategoryMeta('NP_o2')
-NP_inf = CategoryMeta('NP_inf')
 
 TV_su_ctrl = CategoryMeta('TV_su_ctrl')
 TV_obj_ctrl = CategoryMeta('TV_obj_ctrl')
 INF_su_ctrl = CategoryMeta('INF_su_ctrl')
 INF_obj_ctrl = CategoryMeta('INF_obj_ctrl')
 ITV_inf = CategoryMeta('ITV_inf')
-TV_inf = CategoryMeta('TV_inf')
 AUX_subj = CategoryMeta('AUX_subj')
 AUX_obj = CategoryMeta('AUX_obj')
 DIE = CategoryMeta('DIE')
@@ -69,42 +67,15 @@ REL_su_VERB = CategoryMeta('REL_su_VERB')
 REL_obj_VERB = CategoryMeta('REL_obj_VERB')
 
 # Constants
-NP_inf.constants = ['het biertje', 'een pizza']
-
-TE.constants = ['te']
-ITV_inf.constants = ['vertrekken', 'komen', 'verliezen', 'winnen']
-TV_inf.constants = ['drinken', 'eten']
-
-TV_su_ctrl.constants = ['belooft', 'garandeert']
-TV_obj_ctrl.constants = ['vraagt', 'dwingt']
-INF_su_ctrl.constants = ['beloven', 'garanderen']
-INF_obj_ctrl.constants = ['vragen', 'dwingen']
-
 AUX_subj.constants = ['laten']
 AUX_obj.constants = ['doen']
 
 INF_tv.constants = [('het biertje', 'drinken'), ('een pizza', 'eten')]
-DIE.constants = ['die']
+
 
 REL_su_VERB.constants = ['helpt', 'bijstaat']
 REL_obj_VERB.constants = ['negeert', 'verpleegt']
 
-""" CTRL,         (NP_s, TV_su_ctrl, NP_o, VC)
-                    de man belooft de vrouw te winnen
-    CTRL,         (NP_s, TV_su_ctrl, NP_o, AUX_subj, VC_subj)
-                    de man belooft de vrouw te laten winnen
-    CTRL,         (NP_s, TV_obj_ctrl, NP_o, AUX_obj, VC_obj)
-                    de man vraagt de vrouw te mogen winnen
-                    FUCK
-                    
-    VC_subj,
-    de man vraagt/belooft de vrouw VC
-    VC -> te winnen
-    VC_special -> te laten/mogen winnen
-    
-    de man vraagt de vrouw VC[de persoon te laten, beloven VC[te mogen, winnen]]
-    
- """
 """
     S(X) -> CTRL(X)
     CTRL(XYZUV) -> NP_s(X) TV(Y) NP_o(Z) VC(U, V)
@@ -129,15 +100,14 @@ annotated_rules = [
         ((CTRL,             (NP_s, TV_obj_ctrl, NP_o, VC)),
          ({1: 0},           (False, False, False, 2)),
          ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
-
         ((CTRL,             (NP_s, TV_su_ctrl, NP_o, AUX_subj, VC)),
          ({1: 0,
            3: 0},           (False, False, False, False, 2)),
          ([(0, 0), (1, 0), (2, 0), (4, 0), (3, 0), (4, 1)],)),
-        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) VC(te, winnen)
-        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) AUX_subj(laten) VC(te, winnen)
-        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) VC(te laten, beloven te mogen winnen)
-        # NP_s(de man) TV_su_ctrl(belooft) NP_o(de vrouw) AUX_subj(laten) VC(te laten, beloven te mogen winnen)
+        ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, NP_o, AUX_subj, VC)),
+         ({1: 0,
+           4: 0},           (False, False, False, False, False, 3)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (5, 0), (4, 0), (5, 1)],)),
         ((CTRL,             (NP_s, TV_obj_ctrl, NP_o, AUX_obj, VC)),
          ({1: 0,
            3: 2},           (False, False, False, False, 0)),
@@ -166,13 +136,13 @@ annotated_rules = [
            3: None},        (False, False, False, False, 0)),
          ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
         ((NP_s,             (NP,)),
-         ({},               (False,)),
+         (dict(),           (False,)),
          ([(0, 0)],)),
         ((NP_o,             (NP,)),
-         ({},               (False,)),
+         (dict(),           (False,)),
          ([(0, 0)],)),
         ((NP_o2,            (NP,)),
-         ({},               (False,)),
+         (dict(),           (False,)),
          ([(0, 0)],)),
         ((NP,               (NP, DIE, NP, REL_su_VERB)),
          ({3: 0},           (False, False, False, False)),
@@ -183,7 +153,7 @@ annotated_rules = [
 
 ]
 
-n_candidates = {NP_s, NP_o, NP_o2}
+n_candidates = {NP_s, NP_o, NP_o2, NP}
 v_candidates = {TV_su_ctrl, TV_obj_ctrl, ITV_inf, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB,
                 REL_obj_VERB, INF_tv, AUX_subj, AUX_obj}
 
@@ -196,19 +166,16 @@ exclude_candidates = {DIE, TE, AUX_subj, AUX_obj}
 
 
 def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str],
-                  obj_verbs: list[str], obj_verbs_inf: list[str]):
-    # n_idx = len(nouns)//3
+                  obj_verbs: list[str], obj_verbs_inf: list[str], inf_verbs: list[str]):
     NP.constants = nouns
-    # NP_o.constants = nouns
-    # NP_o2.constants = nouns
-    # NP_s.constants = nouns[:n_idx]
-    # NP_o.constants = nouns[n_idx:2*n_idx]
-    # NP_o2.constants = nouns[2*n_idx:]
 
     TV_su_ctrl.constants = su_verbs
     TV_obj_ctrl.constants = obj_verbs
     INF_su_ctrl.constants = su_verbs_inf
     INF_obj_ctrl.constants = obj_verbs_inf
+    ITV_inf.constants = inf_verbs
+    DIE.constants = ['die']
+    TE.constants = ['te']
 
 
 def get_grammar(max_depth: int, sample: Maybe[int], min_depth: int = 0):
