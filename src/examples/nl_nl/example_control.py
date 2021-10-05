@@ -90,6 +90,9 @@ REL_obj_VERB.constants = ['negeert', 'verpleegt']
 # todo: AUX in CTRL requires both object and indirect object:
 # het kind garandeert (aan) het meisje (om) de jongen het biertje te laten drinken
 
+# het kind belooft (aan) het meisje te vertrekken
+# het kind belooft "(aan) de jongen" (om) het meisje te laten vertrekken
+
 annotated_rules = [
         ((S,                (CTRL,)),
          (dict(),           (False,)),
@@ -112,6 +115,10 @@ annotated_rules = [
          ({1: 0,
            3: 2},           (False, False, False, False, 0)),
          ([(0, 0), (1, 0), (2, 0), (4, 0), (3, 0), (4, 1)],)),
+        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, NP_o, AUX_obj, VC)),
+         ({1: 0,
+           4: 3},           (False, False, False, False, False, 0)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (5, 0), (4, 0), (5, 1)],)),
         ((VC,               (TE, INF)),
          (dict(),           (False, True)),
          ([(0, 0)], [(1, 0)])),
@@ -195,6 +202,7 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
     su_verbs_inf = Lexicon.sub_control_verbs_inf()
     obj_verbs = Lexicon.obj_control_verbs_present()
     obj_verbs_inf = Lexicon.obj_control_verbs_inf()
+    inf_verbs = Lexicon.infinitive_verbs()
 
     if seed is not None:
         set_seed(seed)
@@ -203,6 +211,7 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
         shuffle(su_verbs_inf)
         shuffle(obj_verbs)
         shuffle(obj_verbs_inf)
+        shuffle(inf_verbs)
 
     (noun_l, noun_r) = noun_idxs
     (su_verb_l, su_verb_r) = su_verb_idxs
@@ -211,7 +220,8 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
                   su_verbs=su_verbs[su_verb_l:su_verb_r],
                   su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
                   obj_verbs=obj_verbs[obj_verb_l:obj_verb_r],
-                  obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r])
+                  obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r],
+                  inf_verbs=inf_verbs)
 
     if os.path.isfile(out_fn):
         os.remove(out_fn)
