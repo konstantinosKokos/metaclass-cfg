@@ -50,6 +50,7 @@ INF_tv = CategoryMeta('INF_tv', 2)
 
 TE = CategoryMeta('TE')
 
+NP = CategoryMeta('NP')
 NP_s = CategoryMeta('NP_s')
 NP_o = CategoryMeta('NP_o')
 NP_o2 = CategoryMeta('NP_o2')
@@ -68,9 +69,6 @@ REL_su_VERB = CategoryMeta('REL_su_VERB')
 REL_obj_VERB = CategoryMeta('REL_obj_VERB')
 
 # Constants
-NP_s.constants = ['de man', 'de vrouw', 'het kind']
-NP_o.constants = ['de sollicitant', 'het meisje', 'de socialist']
-NP_o2.constants = ['de agent', 'het opaatje', 'de geitenhoeder']
 NP_inf.constants = ['het biertje', 'een pizza']
 
 TE.constants = ['te']
@@ -167,13 +165,22 @@ annotated_rules = [
          ({2: None,
            3: None},        (False, False, False, False, 0)),
          ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
-
-        ((NP_s,                 (NP_s, DIE, NP_o, REL_su_VERB)),
-         ({3: 0},               (False, False, False, False)),
+        ((NP_s,             (NP,)),
+         ({},               (False,)),
+         ([(0, 0)],)),
+        ((NP_o,             (NP,)),
+         ({},               (False,)),
+         ([(0, 0)],)),
+        ((NP_o2,            (NP,)),
+         ({},               (False,)),
+         ([(0, 0)],)),
+        ((NP,               (NP, DIE, NP, REL_su_VERB)),
+         ({3: 0},           (False, False, False, False)),
          ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((NP_s,                 (NP_s, DIE, NP_o, REL_obj_VERB)),
-         ({3: 2},               (False, False, False, False)),
+        ((NP,               (NP, DIE, NP, REL_obj_VERB)),
+         ({3: 2},           (False, False, False, False)),
          ([(0, 0), (1, 0), (2, 0), (3, 0)],))
+
 ]
 
 n_candidates = {NP_s, NP_o, NP_o2}
