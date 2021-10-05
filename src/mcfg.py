@@ -52,6 +52,10 @@ class CategoryMeta(type):
     def __str__(cls) -> str:
         return cls.__name__
 
+    def __repr__(cls) -> str:
+        return str(cls)
+
+
 @dataclass(unsafe_hash=True)
 class AbsRule:
     lhs:            CategoryMeta
