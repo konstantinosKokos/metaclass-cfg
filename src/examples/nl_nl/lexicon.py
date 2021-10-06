@@ -21,12 +21,6 @@ def _load_control_verbs(path: str) -> tuple[list[str], list[str]]:
     return list(verbs_present), list(verbs_inf)
 
 
-
-def _load_vos(path: str) -> list[tuple[str, ...]]:
-    with open(path, 'r') as infile:
-        return [tuple(reversed(ln.strip().split('\t'))) for ln in infile.readlines()]
-
-
 _de_nouns = _load_plain(_de_noun_path)
 _het_nouns = _load_plain(_het_noun_path)
 _obj_control_verbs_present, _obj_control_verbs_inf = _load_control_verbs(_obj_cv_path)

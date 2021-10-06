@@ -83,12 +83,6 @@ REL_obj_VERB.constants = ['negeert', 'verpleegt']
 
  """
 
-# todo: AUX in CTRL requires both object and indirect object:
-# het kind garandeert (aan) het meisje (om) de jongen het biertje te laten drinken
-
-# het kind belooft (aan) het meisje te vertrekken
-# het kind belooft "(aan) de jongen" (om) het meisje te laten vertrekken
-
 annotated_rules = [
         ((CTRL,             (NP_s, TV_su_ctrl, NP_o, VC)),
          ({1: 0},           (False, False, False, 0)),
@@ -112,15 +106,12 @@ annotated_rules = [
          ({1: 0,
            4: 3},           (False, False, False, False, False, 0)),
          ([(0, 0), (1, 0), (2, 0), (3, 0), (5, 0), (4, 0), (5, 1)],)),
-        ((VC,               (TE, INF)),
-         (dict(),           (False, True)),
+        ((VC,               (TE, INF_itv)),
+         ({1: None},        (False, False)),
          ([(0, 0)], [(1, 0)])),
-        ((INF,              (ITV_inf,)),
-         ({0: None},        (False,)),
-         ([(0, 0)],)),
-        ((VC,               (INF_tv, TE)),
-         ({0: None},        (False, False)),
-         ([(0, 0), (1, 0)], [(0, 1)])),
+        ((VC,               (TE, INF_tv, NP)),
+         ({1: None},        (False, False, False)),
+         ([(2, 0), (0, 0)], [(1, 0)])),
         ((VC,               (NP_o2, TE, INF_su_ctrl, VC)),
          ({2: None},        (False, False, False, True)),
          ([(0, 0), (1, 0)], [(2, 0), (3, 0), (3, 1)])),
