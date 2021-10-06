@@ -41,12 +41,11 @@ import json
 
 
 # Categories
-S = CategoryMeta('S')
 CTRL = CategoryMeta('CTRL')
 
 VC = CategoryMeta('VC', 2)
 INF = CategoryMeta('INF')
-INF_tv = CategoryMeta('INF_tv', 2)
+INF_tv = CategoryMeta('INF_tv')
 
 TE = CategoryMeta('TE')
 
@@ -59,7 +58,7 @@ TV_su_ctrl = CategoryMeta('TV_su_ctrl')
 TV_obj_ctrl = CategoryMeta('TV_obj_ctrl')
 INF_su_ctrl = CategoryMeta('INF_su_ctrl')
 INF_obj_ctrl = CategoryMeta('INF_obj_ctrl')
-ITV_inf = CategoryMeta('ITV_inf')
+INF_itv = CategoryMeta('ITV_inf')
 AUX_subj = CategoryMeta('AUX_subj')
 AUX_obj = CategoryMeta('AUX_obj')
 DIE = CategoryMeta('DIE')
@@ -91,9 +90,6 @@ REL_obj_VERB.constants = ['negeert', 'verpleegt']
 # het kind belooft "(aan) de jongen" (om) het meisje te laten vertrekken
 
 annotated_rules = [
-        ((S,                (CTRL,)),
-         (dict(),           (False,)),
-         ([(0, 0)],)),
         ((CTRL,             (NP_s, TV_su_ctrl, NP_o, VC)),
          ({1: 0},           (False, False, False, 0)),
          ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
@@ -148,16 +144,16 @@ annotated_rules = [
         ((NP_o2,            (NP,)),
          (dict(),           (False,)),
          ([(0, 0)],)),
-        ((NP,               (NP, DIE, NP, REL_su_VERB)),
-         ({3: 0},           (False, False, False, False)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        ((NP,               (NP, DIE, NP, REL_obj_VERB)),
-         ({3: 2},           (False, False, False, False)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0)],))
+        # ((NP,               (NP, DIE, NP, REL_su_VERB)),
+        #  ({3: 0},           (False, False, False, False)),
+        #  ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
+        # ((NP,               (NP, DIE, NP, REL_obj_VERB)),
+        #  ({3: 2},           (False, False, False, False)),
+        #  ([(0, 0), (1, 0), (2, 0), (3, 0)],))
 ]
 
 n_candidates = {NP_s, NP_o, NP_o2, NP}
-v_candidates = {TV_su_ctrl, TV_obj_ctrl, ITV_inf, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB,
+v_candidates = {TV_su_ctrl, TV_obj_ctrl, INF_itv, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB,
                 REL_obj_VERB, INF_tv, AUX_subj, AUX_obj}
 
 grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
@@ -176,14 +172,14 @@ def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str]
     TV_obj_ctrl.constants = obj_verbs
     INF_su_ctrl.constants = su_verbs_inf
     INF_obj_ctrl.constants = obj_verbs_inf
-    ITV_inf.constants = inf_ivs
+    INF_itv.constants = inf_ivs
     INF_tv.constants = inf_tvs
     DIE.constants = ['die']
     TE.constants = ['te']
 
 
 def get_grammar(max_depth: int, sample: Maybe[int], min_depth: int = 0):
-    return exhaust_grammar(grammar, S, surf_rules, matching_rules, max_depth, n_candidates,
+    return exhaust_grammar(grammar, CTRL, surf_rules, matching_rules, max_depth, n_candidates,
                            v_candidates, sample, min_depth, exclude_candidates)
 
 
@@ -230,3 +226,4 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
                                for tree, (matching, surfaces) in trees.items()}
                        for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth).items()}
         json.dump(implemented, out_file, indent=4)
+    return implemented
