@@ -8,6 +8,7 @@ _het_noun_path = os.path.join(_data_dir, 'het_personen.txt')
 _obj_cv_path = os.path.join(_data_dir, 'obj_control_verbs.txt')
 _sub_cv_path = os.path.join(_data_dir, 'sub_control_verbs.txt')
 _inf_path = os.path.join(_data_dir, 'infinitives.txt')
+_vos_path = os.path.join(_data_dir, 'verbs_with_objects.txt')
 
 
 def _load_plain(path: str) -> list[str]:
@@ -20,11 +21,17 @@ def _load_control_verbs(path: str) -> tuple[list[str], list[str]]:
     return list(verbs_present), list(verbs_inf)
 
 
+def _load_vos(path: str) -> list[tuple[str, ...]]:
+    with open(path, 'r') as infile:
+        return [tuple(ln.strip().split('\t')) for ln in infile.readlines()]
+
+
 _de_nouns = _load_plain(_de_noun_path)
 _het_nouns = _load_plain(_het_noun_path)
 _obj_control_verbs_present, _obj_control_verbs_inf = _load_control_verbs(_obj_cv_path)
 _sub_control_verbs_present, _sub_control_verbs_inf = _load_control_verbs(_sub_cv_path)
 _infinitive_verbs = _load_plain(_inf_path)
+_vos = _load_vos(_vos_path)
 
 
 class Lexicon:
@@ -55,3 +62,7 @@ class Lexicon:
     @staticmethod
     def infinitive_verbs():
         return list(iter(_infinitive_verbs))
+
+    @staticmethod
+    def vos():
+        return list(iter(_vos))

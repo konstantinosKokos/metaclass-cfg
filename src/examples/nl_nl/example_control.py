@@ -70,9 +70,6 @@ REL_obj_VERB = CategoryMeta('REL_obj_VERB')
 AUX_subj.constants = ['laten']
 AUX_obj.constants = ['doen']
 
-INF_tv.constants = [('het biertje', 'drinken'), ('een pizza', 'eten')]
-
-
 REL_su_VERB.constants = ['helpt', 'bijstaat']
 REL_obj_VERB.constants = ['negeert', 'verpleegt']
 
@@ -157,7 +154,6 @@ annotated_rules = [
         ((NP,               (NP, DIE, NP, REL_obj_VERB)),
          ({3: 2},           (False, False, False, False)),
          ([(0, 0), (1, 0), (2, 0), (3, 0)],))
-
 ]
 
 n_candidates = {NP_s, NP_o, NP_o2, NP}
@@ -173,14 +169,15 @@ exclude_candidates = {DIE, TE, AUX_subj, AUX_obj}
 
 
 def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str],
-                  obj_verbs: list[str], obj_verbs_inf: list[str], inf_verbs: list[str]):
+                  obj_verbs: list[str], obj_verbs_inf: list[str], inf_ivs: list[str], inf_tvs: list[tuple[str, str]]):
     NP.constants = nouns
 
     TV_su_ctrl.constants = su_verbs
     TV_obj_ctrl.constants = obj_verbs
     INF_su_ctrl.constants = su_verbs_inf
     INF_obj_ctrl.constants = obj_verbs_inf
-    ITV_inf.constants = inf_verbs
+    ITV_inf.constants = inf_ivs
+    INF_tv.constants = inf_tvs
     DIE.constants = ['die']
     TE.constants = ['te']
 
@@ -202,7 +199,8 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
     su_verbs_inf = Lexicon.sub_control_verbs_inf()
     obj_verbs = Lexicon.obj_control_verbs_present()
     obj_verbs_inf = Lexicon.obj_control_verbs_inf()
-    inf_verbs = Lexicon.infinitive_verbs()
+    inf_ivs = Lexicon.infinitive_verbs()
+    inf_tvs = Lexicon.vos()
 
     if seed is not None:
         set_seed(seed)
@@ -211,7 +209,8 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
         shuffle(su_verbs_inf)
         shuffle(obj_verbs)
         shuffle(obj_verbs_inf)
-        shuffle(inf_verbs)
+        shuffle(inf_ivs)
+        shuffle(inf_tvs)
 
     (noun_l, noun_r) = noun_idxs
     (su_verb_l, su_verb_r) = su_verb_idxs
@@ -221,7 +220,8 @@ def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: 
                   su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
                   obj_verbs=obj_verbs[obj_verb_l:obj_verb_r],
                   obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r],
-                  inf_verbs=inf_verbs)
+                  inf_ivs=inf_ivs,
+                  inf_tvs=inf_tvs)
 
     if os.path.isfile(out_fn):
         os.remove(out_fn)
