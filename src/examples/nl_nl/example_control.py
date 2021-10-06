@@ -109,7 +109,7 @@ annotated_rules = [
         ((VC,               (TE, INF_itv)),
          ({1: None},        (False, False)),
          ([(0, 0)], [(1, 0)])),
-        ((VC,               (TE, INF_tv, NP)),
+        ((VC,               (TE, INF_tv, NP_o)),
          ({1: None},        (False, False, False)),
          ([(2, 0), (0, 0)], [(1, 0)])),
         ((VC,               (NP_o2, TE, INF_su_ctrl, VC)),
@@ -143,7 +143,7 @@ annotated_rules = [
         #  ([(0, 0), (1, 0), (2, 0), (3, 0)],))
 ]
 
-n_candidates = {NP}
+n_candidates = {NP_s, NP_o, NP_o2, NP}
 v_candidates = {TV_su_ctrl, TV_obj_ctrl, INF_itv, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB,
                 REL_obj_VERB, INF_tv, AUX_subj, AUX_obj}
 
