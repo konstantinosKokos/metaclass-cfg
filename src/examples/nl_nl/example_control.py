@@ -143,7 +143,7 @@ annotated_rules = [
         #  ([(0, 0), (1, 0), (2, 0), (3, 0)],))
 ]
 
-n_candidates = {NP_s, NP_o, NP_o2, NP}
+n_candidates = {NP_s, NP_o, NP_o2}
 v_candidates = {TV_su_ctrl, TV_obj_ctrl, INF_itv, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB,
                 REL_obj_VERB, INF_tv, AUX_subj, AUX_obj}
 
