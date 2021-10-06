@@ -23,7 +23,7 @@ def _load_control_verbs(path: str) -> tuple[list[str], list[str]]:
 
 def _load_vos(path: str) -> list[tuple[str, ...]]:
     with open(path, 'r') as infile:
-        return [tuple(ln.strip().split('\t')) for ln in infile.readlines()]
+        return [tuple(reversed(ln.strip().split('\t'))) for ln in infile.readlines()]
 
 
 _de_nouns = _load_plain(_de_noun_path)
