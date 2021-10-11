@@ -222,5 +222,5 @@ def main(splits: str):
             implemented[subset] = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
                                    for tree, (matching, surfaces) in trees.items()}
                                    for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth).items()}
-        with open(f'./{exp}.json', 'a') as out_file:
+        with open(f'./{exp}.json', 'w') as out_file:
             json.dump(implemented, out_file, indent=4)
