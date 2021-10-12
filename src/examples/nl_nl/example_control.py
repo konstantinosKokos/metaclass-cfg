@@ -83,6 +83,9 @@ REL_obj_VERB.constants = ['negeert', 'verpleegt']
 
  """
 
+# Todo: we could remove the rules from CTRL to NP_s, TV_xx_ctrl, NP_o AUX_xx VC, because these cases make the NP_o
+# ambiguous. Rather we only would have rules that explicitly introduce also an NP_o2.
+
 annotated_rules = [
         ((CTRL,             (NP_s, TV_su_ctrl, NP_o, VC)),
          ({1: 0},           (False, False, False, 0)),
