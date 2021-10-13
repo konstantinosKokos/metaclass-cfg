@@ -106,11 +106,11 @@ annotated_rules = [
          ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
         ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, MOD_pt, NP_o, AUX_subj, VC)),
          ({1: 0,
-           4: 0},           (False, False, False, False, False, False, 4)),
+           5: 0},           (False, False, False, False, False, False, 4)),
          ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
         ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, NP_o, MOD_pt, AUX_subj, VC)),
          ({1: 0,
-           4: 0},           (False, False, False, False, False, False, 3)),
+           5: 0},           (False, False, False, False, False, False, 3)),
          ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
 
         ((CTRL,             (MOD_pt, TV_su_ctrl, NP_s, NP_o2, VC)),
@@ -136,11 +136,11 @@ annotated_rules = [
          ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
         ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, MOD_pt, NP_o, AUX_obj, VC)),
          ({1: 0,
-           4: 3},           (False, False, False, False, False, False, 0)),
+           5: 3},           (False, False, False, False, False, False, 0)),
          ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
         ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, NP_o, MOD_pt, AUX_obj, VC)),
          ({1: 0,
-           4: 3},           (False, False, False, False, False, False, 0)),
+           5: 3},           (False, False, False, False, False, False, 0)),
          ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
 
         ((CTRL,             (MOD_pt, TV_obj_ctrl, NP_s, NP_o2, VC)),
@@ -264,7 +264,7 @@ def main(splits: str):
                           obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r],
                           inf_ivs=inf_ivs,
                           inf_tvs=inf_tvs)
-            grammar = (make_grammar(excluded_rules)
+            grammar = (make_grammar(excluded_rules)[0]
                        if len((excluded_rules := set(experiments[exp][subset]['excluded_rules']))) else full_grammar)
 
             implemented[subset] = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
