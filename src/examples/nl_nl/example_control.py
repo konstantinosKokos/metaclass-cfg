@@ -136,7 +136,7 @@ annotated_rules = [
          ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
         ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, MOD_pt, NP_o, AUX_obj, VC)),
          ({1: 0,
-           5: 3},           (False, False, False, False, False, False, 0)),
+           5: 4},           (False, False, False, False, False, False, 0)),
          ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
         ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, NP_o, MOD_pt, AUX_obj, VC)),
          ({1: 0,
