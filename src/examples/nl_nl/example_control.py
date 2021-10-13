@@ -192,13 +192,17 @@ annotated_rules = [
 n_candidates = {NP_s, NP_o, NP_o2}
 v_candidates = {TV_su_ctrl, TV_obj_ctrl, INF_itv, INF_su_ctrl, INF_obj_ctrl, REL_su_VERB,
                 REL_obj_VERB, INF_tv, AUX_subj, AUX_obj}
-
-grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
-
-matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
-surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
-
 exclude_candidates = {DIE, TE, AUX_subj, AUX_obj}
+
+
+def make_grammar(excluded_rules: set[int]) -> tuple[AbsGrammar, dict[AbsRule, ...], dict[AbsRule, ...]]:
+    subrules = [r for i, r in enumerate(annotated_rules) if i not in excluded_rules]
+    return (AbsGrammar(AbsRule.from_list([r[0] for r in subrules])),
+            {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in subrules},
+            {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in subrules})
+
+
+full_grammar, matching_rules, surf_rules = make_grammar(set())
 
 
 def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str],
@@ -215,13 +219,9 @@ def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str]
     TE.constants = ['te']
 
 
-def get_grammar(max_depth: int, sample: Maybe[int], min_depth: int = 0):
+def get_grammar(max_depth: int, sample: Maybe[int], min_depth: int = 0, grammar: AbsGrammar = full_grammar):
     return exhaust_grammar(grammar, CTRL, surf_rules, matching_rules, max_depth, n_candidates,
                            v_candidates, sample, min_depth, exclude_candidates)
-
-
-def json_string(matching: Matching, surfaces: list[Realized]):
-    return json.dumps({'matching': matching, 'surfaces': surfaces})
 
 
 def main(splits: str):
@@ -264,9 +264,12 @@ def main(splits: str):
                           obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r],
                           inf_ivs=inf_ivs,
                           inf_tvs=inf_tvs)
+            grammar = (make_grammar(excluded_rules)
+                       if len((excluded_rules := set(experiments[exp][subset]['excluded_rules']))) else full_grammar)
 
             implemented[subset] = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
                                    for tree, (matching, surfaces) in trees.items()}
-                                   for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth).items()}
+                                   for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth,
+                                                                   grammar=grammar).items()}
         with open(f'./{exp}.json', 'w') as out_file:
             json.dump(implemented, out_file, indent=4)

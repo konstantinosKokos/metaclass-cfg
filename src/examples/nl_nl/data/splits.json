@@ -7,21 +7,24 @@
       "nouns": [0, 100],
       "subject": [0, 5],
       "object": [0, 23],
-      "samples": 5
+      "samples": 5,
+      "excluded_rules": []
     },
     "dev": {
       "depth": [1, 7],
       "nouns": [60, 120],
       "subject": [0, 7],
       "object": [0, 28],
-      "samples": 3
+      "samples": 3,
+      "excluded_rules": []
     },
     "test": {
       "depth": [3, 9],
       "nouns": [80, 140],
       "subject": [0, 9],
       "object": [0, 33],
-      "samples": 1
+      "samples": 1,
+      "excluded_rules": []
     }
   }
 }
