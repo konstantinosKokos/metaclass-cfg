@@ -65,12 +65,16 @@ DIE = CategoryMeta('DIE')
 REL_su_VERB = CategoryMeta('REL_su_VERB')
 REL_obj_VERB = CategoryMeta('REL_obj_VERB')
 
+MOD_pt = CategoryMeta('MOD_pt')
+
 # Constants
 AUX_subj.constants = ['laten']
 AUX_obj.constants = ['doen']
 
 REL_su_VERB.constants = ['helpt', 'bijstaat']
 REL_obj_VERB.constants = ['negeert', 'verpleegt']
+
+MOD_pt.constants = ['vandaag', 'nu', 'momenteel', 'hier', 'daar', 'vrolijk', 'verdrietig']
 
 """
     S(X) -> CTRL(X)
@@ -82,50 +86,89 @@ REL_obj_VERB.constants = ['negeert', 'verpleegt']
     NP_s(XYZU) -> NP_s(X) DIE(Y) NP_o(Z) REL(U)
 
  """
-
-# Todo: we could remove the rules from CTRL to NP_s, TV_xx_ctrl, NP_o AUX_xx VC, because these cases make the NP_o
+# Todo (DONE): we could remove the rules from CTRL to NP_s, TV_xx_ctrl, NP_o AUX_xx VC, because these cases make the NP_o
 # ambiguous. Rather we only would have rules that explicitly introduce also an NP_o2.
+# Todo (DONE): create cases where SVO order changes, with modifiers,
+#  e.g. "De man belooft de vrouw vandaag VC"/"Vandaag belooft de man de vrouw VC"
+# "De man belooft de vrouw te vertrekken"  "De man belooft de vrouw om te vertrekken"
 
 annotated_rules = [
-        ((CTRL,             (NP_s, TV_su_ctrl, NP_o, VC)),
+        ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, VC)),
          ({1: 0},           (False, False, False, 0)),
          ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
-        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o, VC)),
-         ({1: 0},           (False, False, False, 2)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
-        ((CTRL,             (NP_s, TV_su_ctrl, NP_o, AUX_subj, VC)),
-         ({1: 0,
-           3: 0},           (False, False, False, False, 2)),
-         ([(0, 0), (1, 0), (2, 0), (4, 0), (3, 0), (4, 1)],)),
         ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, NP_o, AUX_subj, VC)),
          ({1: 0,
            4: 0},           (False, False, False, False, False, 3)),
          ([(0, 0), (1, 0), (2, 0), (3, 0), (5, 0), (4, 0), (5, 1)],)),
-        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o, AUX_obj, VC)),
+
+        ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, MOD_pt, VC)),
+         ({1: 0},           (False, False, False, False, 0)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
+        ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, MOD_pt, NP_o, AUX_subj, VC)),
          ({1: 0,
-           3: 2},           (False, False, False, False, 0)),
-         ([(0, 0), (1, 0), (2, 0), (4, 0), (3, 0), (4, 1)],)),
+           4: 0},           (False, False, False, False, False, False, 4)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+        ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, NP_o, MOD_pt, AUX_subj, VC)),
+         ({1: 0,
+           4: 0},           (False, False, False, False, False, False, 3)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+
+        ((CTRL,             (MOD_pt, TV_su_ctrl, NP_s, NP_o2, VC)),
+         ({1: 2},           (False, False, False, False, 2)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
+        ((CTRL,             (MOD_pt, TV_su_ctrl, NP_s, NP_o2, NP_o, AUX_subj, VC)),
+         ({1: 2,
+           5: 2},           (False, False, False, False, False, False, 4)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+
+
+
+        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, VC)),
+         ({1: 0},           (False, False, False, 2)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
         ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, NP_o, AUX_obj, VC)),
          ({1: 0,
            4: 3},           (False, False, False, False, False, 0)),
          ([(0, 0), (1, 0), (2, 0), (3, 0), (5, 0), (4, 0), (5, 1)],)),
+
+        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, MOD_pt, VC)),
+         ({1: 0},           (False, False, False, False, 0)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
+        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, MOD_pt, NP_o, AUX_obj, VC)),
+         ({1: 0,
+           4: 3},           (False, False, False, False, False, False, 0)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, NP_o, MOD_pt, AUX_obj, VC)),
+         ({1: 0,
+           4: 3},           (False, False, False, False, False, False, 0)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+
+        ((CTRL,             (MOD_pt, TV_obj_ctrl, NP_s, NP_o2, VC)),
+         ({1: 2},           (False, False, False, False, 3)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
+        ((CTRL,             (MOD_pt, TV_obj_ctrl, NP_s, NP_o2, NP_o, AUX_obj, VC)),
+         ({1: 2,
+           5: 4},           (False, False, False, False, False, False, 2)),
+         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+
+
         ((VC,               (TE, INF_itv)),
          ({1: None},        (False, False)),
          ([(0, 0)], [(1, 0)])),
         ((VC,               (TE, INF_tv, NP_o)),
          ({1: None},        (False, False, False)),
          ([(2, 0), (0, 0)], [(1, 0)])),
-        ((VC,               (NP_o2, TE, INF_su_ctrl, VC)),
+        ((VC,               (NP_o, TE, INF_su_ctrl, VC)),
          ({2: None},        (False, False, False, True)),
          ([(0, 0), (1, 0)], [(2, 0), (3, 0), (3, 1)])),
-        ((VC,               (NP_o2, TE, INF_obj_ctrl, VC)),
+        ((VC,               (NP_o, TE, INF_obj_ctrl, VC)),
          ({2: None},        (False, False, False, 0)),
          ([(0, 0), (1, 0)], [(2, 0), (3, 0), (3, 1)])),
-        ((VC,               (NP_o2, TE, INF_su_ctrl, AUX_subj, VC)),
+        ((VC,               (NP_o, TE, INF_su_ctrl, AUX_subj, VC)),
          ({2: None,
            3: None},        (False, False, False, False, True)),
          ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
-        ((VC,               (NP_o2, TE, INF_obj_ctrl, AUX_obj, VC)),
+        ((VC,               (NP_o, TE, INF_obj_ctrl, AUX_obj, VC)),
          ({2: None,
            3: None},        (False, False, False, False, 0)),
          ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
