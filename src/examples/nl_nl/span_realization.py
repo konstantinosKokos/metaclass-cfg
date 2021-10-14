@@ -148,8 +148,7 @@ def exhaust_grammar(
         -> dict[int, dict[LabeledTree, tuple[Matching, list[Realized]]]]:
     def choice_fn(leaves: list[CategoryMeta], span_realization: SpanRealization) -> Iterator[Realized]:
         if sample is None:
-            raise NotImplementedError
-            # return get_choices(c, exclude_candidates)
+            return get_choices(leaves, span_realization, exclude_candidates)
         return sample_choices(leaves, span_realization, sample, exclude_candidates)
 
     def exhaust_tree(_tree: AbsTree) -> tuple[LabeledTree, tuple[Matching, list[Realized]]]:

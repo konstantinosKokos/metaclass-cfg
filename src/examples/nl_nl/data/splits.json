@@ -19,8 +19,8 @@
       "excluded_rules": []
     },
     "test": {
-      "depth": [0, 5],
-      "nouns": [140, 180],
+      "depth": [0, 4],
+      "nouns": [400, 700],
       "subject": [5, 9],
       "object": [22, 33],
       "samples": 1,
@@ -39,16 +39,16 @@
       "excluded_rules": []
     },
     "dev": {
-      "depth": [4, 7],
-      "nouns": [100, 140],
+      "depth": [4, 6],
+      "nouns": [100, 400],
       "subject": [0, 9],
       "object": [0, 33],
       "samples": 1,
       "excluded_rules": []
     },
     "test": {
-      "depth": [4, 7],
-      "nouns": [140, 180],
+      "depth": [4, 6],
+      "nouns": [400, 700],
       "subject": [0, 9],
       "object": [0, 33],
       "samples": 1,
@@ -59,7 +59,7 @@
   {
     "seeds": [3, 7, 42],
     "train": {
-      "depth": [0, 5],
+      "depth": [0, 4],
       "nouns": [0, 100],
       "subject": [0, 9],
       "object": [0, 33],
@@ -67,18 +67,46 @@
       "excluded_rules": [2, 3, 4, 5, 6, 9, 10, 11, 12, 13]
     },
     "dev": {
-      "depth": [0, 5],
-      "nouns": [100, 140],
+      "depth": [0, 4],
+      "nouns": [100, 400],
       "subject": [0, 9],
       "object": [0, 33],
       "samples": 1,
-      "excluded_rules": []
+      "excluded_rules": [0, 1, 7, 8]
     },
     "test": {
-      "depth": [0, 5],
-      "nouns": [140, 180],
+      "depth": [0, 4],
+      "nouns": [400, 700],
       "subject": [0, 9],
       "object": [0, 33],
+      "samples": 1,
+      "excluded_rules": [0, 1, 7, 8]
+    }
+  },
+  "control:all":
+  {
+    "seeds": [3, 7, 42],
+    "train": {
+      "depth": [0, 4],
+      "nouns": [0, 100],
+      "subject": [0, 5],
+      "object": [0, 22],
+      "samples": 1,
+      "excluded_rules": [2, 3, 4, 5, 6, 9, 10, 11, 12, 13]
+    },
+    "dev": {
+      "depth": [4, 6],
+      "nouns": [100, 400],
+      "subject": [5, 7],
+      "object": [22, 27],
+      "samples": 1,
+      "excluded_rules": [0, 1, 7, 8]
+    },
+    "test": {
+      "depth": [4, 6],
+      "nouns": [400, 700],
+      "subject": [5, 9],
+      "object": [22, 33],
       "samples": 1,
       "excluded_rules": [0, 1, 7, 8]
     }

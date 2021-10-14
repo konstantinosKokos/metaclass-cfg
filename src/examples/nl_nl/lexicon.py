@@ -13,7 +13,7 @@ _adv_path = os.path.join(_data_dir, 'adverbs.txt')
 
 
 def _load_plain(path: str) -> list[str]:
-    return [ln.strip() for ln in open(path, 'r').readlines()]
+    return [ln.strip() for ln in open(path, 'r').readlines() if '_' not in ln]
 
 
 def _load_control_verbs(path: str) -> tuple[list[str], list[str]]:
