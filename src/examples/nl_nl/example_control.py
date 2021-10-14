@@ -29,11 +29,9 @@ TV_inf -> 'drinken', 'eten'
 
 """
 
-
-import os.path
 from ...mcfg import CategoryMeta, AbsRule, AbsGrammar
 from typing import Optional as Maybe
-from .span_realization import Matching, Realized, exhaust_grammar
+from .span_realization import exhaust_grammar
 from .lexicon import Lexicon
 from random import seed as set_seed
 from random import shuffle
@@ -71,11 +69,6 @@ MOD_pt = CategoryMeta('MOD_pt')
 AUX_subj.constants = ['laten']
 AUX_obj.constants = ['doen']
 
-REL_su_VERB.constants = ['helpt', 'bijstaat']
-REL_obj_VERB.constants = ['negeert', 'verpleegt']
-
-MOD_pt.constants = ['vandaag', 'nu', 'momenteel', 'hier', 'daar', 'vrolijk', 'verdrietig']
-
 """
     S(X) -> CTRL(X)
     CTRL(XYZUV) -> NP_s(X) TV(Y) NP_o(Z) VC(U, V)
@@ -84,8 +77,8 @@ MOD_pt.constants = ['vandaag', 'nu', 'momenteel', 'hier', 'daar', 'vrolijk', 've
     VC(XY, ZUV) -> NP_o2(X) TE(Y) INF_ctrl(Z) VC(U, V)
     VC(XYZ, UVW) -> NP_o2(X) TE(Y) INF_ctrl(U) AUX(Z) VC(V, W) 
     NP_s(XYZU) -> NP_s(X) DIE(Y) NP_o(Z) REL(U)
+"""
 
- """
 # Todo (DONE): we could remove the rules from CTRL to NP_s, TV_xx_ctrl, NP_o AUX_xx VC, because these cases make the NP_o
 # ambiguous. Rather we only would have rules that explicitly introduce also an NP_o2.
 # Todo (DONE): create cases where SVO order changes, with modifiers,
@@ -93,100 +86,94 @@ MOD_pt.constants = ['vandaag', 'nu', 'momenteel', 'hier', 'daar', 'vrolijk', 've
 # "De man belooft de vrouw te vertrekken"  "De man belooft de vrouw om te vertrekken"
 
 annotated_rules = [
-        ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, VC)),
-         ({1: 0},           (False, False, False, 0)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
-        ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, NP_o, AUX_subj, VC)),
-         ({1: 0,
-           4: 0},           (False, False, False, False, False, 3)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (5, 0), (4, 0), (5, 1)],)),
-
-        ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, MOD_pt, VC)),
-         ({1: 0},           (False, False, False, False, 0)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
-        ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, MOD_pt, NP_o, AUX_subj, VC)),
-         ({1: 0,
-           5: 0},           (False, False, False, False, False, False, 4)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
-        ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, NP_o, MOD_pt, AUX_subj, VC)),
-         ({1: 0,
-           5: 0},           (False, False, False, False, False, False, 3)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
-
-        ((CTRL,             (MOD_pt, TV_su_ctrl, NP_s, NP_o2, VC)),
-         ({1: 2},           (False, False, False, False, 2)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
-        ((CTRL,             (MOD_pt, TV_su_ctrl, NP_s, NP_o2, NP_o, AUX_subj, VC)),
-         ({1: 2,
-           5: 2},           (False, False, False, False, False, False, 4)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
-
-
-
-        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, VC)),
-         ({1: 0},           (False, False, False, 2)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
-        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, NP_o, AUX_obj, VC)),
-         ({1: 0,
-           4: 3},           (False, False, False, False, False, 0)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (5, 0), (4, 0), (5, 1)],)),
-
-        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, MOD_pt, VC)),
-         ({1: 0},           (False, False, False, False, 0)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
-        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, MOD_pt, NP_o, AUX_obj, VC)),
-         ({1: 0,
-           5: 4},           (False, False, False, False, False, False, 0)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
-        ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, NP_o, MOD_pt, AUX_obj, VC)),
-         ({1: 0,
-           5: 3},           (False, False, False, False, False, False, 0)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
-
-        ((CTRL,             (MOD_pt, TV_obj_ctrl, NP_s, NP_o2, VC)),
-         ({1: 2},           (False, False, False, False, 3)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
-        ((CTRL,             (MOD_pt, TV_obj_ctrl, NP_s, NP_o2, NP_o, AUX_obj, VC)),
-         ({1: 2,
-           5: 4},           (False, False, False, False, False, False, 2)),
-         ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
-
-
-        ((VC,               (TE, INF_itv)),
-         ({1: None},        (False, False)),
-         ([(0, 0)], [(1, 0)])),
-        ((VC,               (TE, INF_tv, NP_o)),
-         ({1: None},        (False, False, False)),
-         ([(2, 0), (0, 0)], [(1, 0)])),
-        ((VC,               (NP_o, TE, INF_su_ctrl, VC)),
-         ({2: None},        (False, False, False, True)),
-         ([(0, 0), (1, 0)], [(2, 0), (3, 0), (3, 1)])),
-        ((VC,               (NP_o, TE, INF_obj_ctrl, VC)),
-         ({2: None},        (False, False, False, 0)),
-         ([(0, 0), (1, 0)], [(2, 0), (3, 0), (3, 1)])),
-        ((VC,               (NP_o, TE, INF_su_ctrl, AUX_subj, VC)),
-         ({2: None,
-           3: None},        (False, False, False, False, True)),
-         ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
-        ((VC,               (NP_o, TE, INF_obj_ctrl, AUX_obj, VC)),
-         ({2: None,
-           3: None},        (False, False, False, False, 0)),
-         ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
-        ((NP_s,             (NP,)),
-         (dict(),           (False,)),
-         ([(0, 0)],)),
-        ((NP_o,             (NP,)),
-         (dict(),           (False,)),
-         ([(0, 0)],)),
-        ((NP_o2,            (NP,)),
-         (dict(),           (False,)),
-         ([(0, 0)],)),
-        # ((NP,               (NP, DIE, NP, REL_su_VERB)),
-        #  ({3: 0},           (False, False, False, False)),
-        #  ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
-        # ((NP,               (NP, DIE, NP, REL_obj_VERB)),
-        #  ({3: 2},           (False, False, False, False)),
-        #  ([(0, 0), (1, 0), (2, 0), (3, 0)],))
+    # CTRL <- ...
+    ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, VC)),
+     ({1: 0},           (False, False, False, 0)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
+    ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, NP_o, AUX_subj, VC)),
+     ({1: 0,
+       4: 0},           (False, False, False, False, False, 3)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (5, 0), (4, 0), (5, 1)],)),
+    ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, MOD_pt, VC)),
+     ({1: 0},           (False, False, False, False, 0)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
+    ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, MOD_pt, NP_o, AUX_subj, VC)),
+     ({1: 0,
+       5: 0},           (False, False, False, False, False, False, 4)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+    ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, NP_o, MOD_pt, AUX_subj, VC)),
+     ({1: 0,
+       5: 0},           (False, False, False, False, False, False, 3)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+    ((CTRL,             (MOD_pt, TV_su_ctrl, NP_s, NP_o2, VC)),
+     ({1: 2},           (False, False, False, False, 2)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
+    ((CTRL,             (MOD_pt, TV_su_ctrl, NP_s, NP_o2, NP_o, AUX_subj, VC)),
+     ({1: 2,
+       5: 2},           (False, False, False, False, False, False, 4)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+    ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, VC)),
+     ({1: 0},           (False, False, False, 2)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (3, 1)],)),
+    ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, NP_o, AUX_obj, VC)),
+     ({1: 0,
+       4: 3},           (False, False, False, False, False, 0)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (5, 0), (4, 0), (5, 1)],)),
+    ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, MOD_pt, VC)),
+     ({1: 0},           (False, False, False, False, 2)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
+    ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, MOD_pt, NP_o, AUX_obj, VC)),
+     ({1: 0,
+       5: 4},           (False, False, False, False, False, False, 0)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+    ((CTRL,             (NP_s, TV_obj_ctrl, NP_o2, NP_o, MOD_pt, AUX_obj, VC)),
+     ({1: 0,
+       5: 3},           (False, False, False, False, False, False, 0)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+    ((CTRL,             (MOD_pt, TV_obj_ctrl, NP_s, NP_o2, VC)),
+     ({1: 2},           (False, False, False, False, 3)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (4, 1)],)),
+    ((CTRL,             (MOD_pt, TV_obj_ctrl, NP_s, NP_o2, NP_o, AUX_obj, VC)),
+     ({1: 2,
+       5: 4},           (False, False, False, False, False, False, 2)),
+     ([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (6, 0), (5, 0), (6, 1)],)),
+    # VC <- ...
+    ((VC,               (TE, INF_itv)),
+     ({1: None},        (False, False)),
+     ([(0, 0)], [(1, 0)])),
+    ((VC,               (TE, INF_tv, NP_o)),
+     ({1: None},        (False, False, False)),
+     ([(2, 0), (0, 0)], [(1, 0)])),
+    ((VC,               (NP_o, TE, INF_su_ctrl, VC)),
+     ({2: None},        (False, False, False, True)),
+     ([(0, 0), (1, 0)], [(2, 0), (3, 0), (3, 1)])),
+    ((VC,               (NP_o, TE, INF_obj_ctrl, VC)),
+     ({2: None},        (False, False, False, 0)),
+     ([(0, 0), (1, 0)], [(2, 0), (3, 0), (3, 1)])),
+    ((VC,               (NP_o, TE, INF_su_ctrl, AUX_subj, VC)),
+     ({2: None,
+       3: None},        (False, False, False, False, True)),
+     ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
+    ((VC,               (NP_o, TE, INF_obj_ctrl, AUX_obj, VC)),
+     ({2: None,
+       3: None},        (False, False, False, False, 0)),
+     ([(0, 0), (1, 0), (3, 0)], [(2, 0), (4, 0), (4, 1)])),
+    # NP <- ...
+    ((NP_s,             (NP,)),
+     (dict(),           (False,)),
+     ([(0, 0)],)),
+    ((NP_o,             (NP,)),
+     (dict(),           (False,)),
+     ([(0, 0)],)),
+    ((NP_o2,            (NP,)),
+     (dict(),           (False,)),
+     ([(0, 0)],)),
+    # ((NP,               (NP, DIE, NP, REL_su_VERB)),
+    #  ({3: 0},           (False, False, False, False)),
+    #  ([(0, 0), (1, 0), (2, 0), (3, 0)],)),
+    # ((NP,               (NP, DIE, NP, REL_obj_VERB)),
+    #  ({3: 2},           (False, False, False, False)),
+    #  ([(0, 0), (1, 0), (2, 0), (3, 0)],))
 ]
 
 n_candidates = {NP_s, NP_o, NP_o2}
@@ -239,37 +226,40 @@ def main(splits: str):
         obj_verbs_inf = Lexicon.obj_control_verbs_inf()
         inf_ivs = Lexicon.infinitive_verbs()
         inf_tvs = Lexicon.vos()
-        # Init seed
-        seed = experiments[exp]['seed']
-        set_seed(seed)
-        shuffle(all_nouns)
-        shuffle(su_verbs)
-        shuffle(su_verbs_inf)
-        shuffle(obj_verbs)
-        shuffle(obj_verbs_inf)
-        shuffle(inf_ivs)
-        shuffle(inf_tvs)
-
-        for subset in ['train', 'dev', 'test']:
-            print(f'\tProcessing {subset}...')
-            noun_l, noun_r = experiments[exp][subset]['nouns']
-            su_verb_l, su_verb_r = experiments[exp][subset]['subject']
-            obj_verb_l, obj_verb_r = experiments[exp][subset]['object']
-            min_depth, max_depth = experiments[exp][subset]['depth']
-            num_samples = experiments[exp][subset]['samples']
-            set_constants(nouns=all_nouns[noun_l:noun_r],
-                          su_verbs=su_verbs[su_verb_l:su_verb_r],
-                          su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
-                          obj_verbs=obj_verbs[obj_verb_l:obj_verb_r],
-                          obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r],
-                          inf_ivs=inf_ivs,
-                          inf_tvs=inf_tvs)
-            grammar = (make_grammar(excluded_rules)[0]
-                       if len((excluded_rules := set(experiments[exp][subset]['excluded_rules']))) else full_grammar)
+        adverbs = Lexicon.adverbs()
+        for i, seed in enumerate(experiments[exp]['seeds']):
+            print(f'\tProcessing seed {i} of {len(experiments[exp]["seeds"])}')
+            set_seed(seed)
+            shuffle(all_nouns)
+            shuffle(su_verbs)
+            shuffle(su_verbs_inf)
+            shuffle(obj_verbs)
+            shuffle(obj_verbs_inf)
+            shuffle(inf_ivs)
+            shuffle(inf_tvs)
+            shuffle(adverbs)
+            for subset in ['train', 'dev', 'test']:
+                print(f'\t\tProcessing {subset}...')
+                noun_l, noun_r = experiments[exp][subset]['nouns']
+                su_verb_l, su_verb_r = experiments[exp][subset]['subject']
+                obj_verb_l, obj_verb_r = experiments[exp][subset]['object']
+                min_depth, max_depth = experiments[exp][subset]['depth']
+                num_samples = experiments[exp][subset]['samples']
+                set_constants(nouns=all_nouns[noun_l:noun_r],
+                              su_verbs=su_verbs[su_verb_l:su_verb_r],
+                              su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
+                              obj_verbs=obj_verbs[obj_verb_l:obj_verb_r],
+                              obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r],
+                              inf_ivs=inf_ivs,
+                              inf_tvs=inf_tvs,
+                              adverbs=adverbs)
+                grammar = (make_grammar(excluded_rules)[0]
+                           if len((excluded_rules := set(experiments[exp][subset]['excluded_rules'])))
+                           else full_grammar)
 
             implemented[subset] = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
                                    for tree, (matching, surfaces) in trees.items()}
                                    for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth,
                                                                    grammar=grammar).items()}
-        with open(f'./{exp}.json', 'w') as out_file:
-            json.dump(implemented, out_file, indent=4)
+            with open(f'./{exp}_{seed}.json', 'w') as out_file:
+                json.dump(implemented, out_file, indent=4)

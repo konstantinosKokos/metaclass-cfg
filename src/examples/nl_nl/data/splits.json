@@ -1,25 +1,53 @@
 {
-  "control_1":
+  "control:vocab":
   {
-    "seed": 42,
+    "seeds": [3, 7, 42],
     "train": {
       "depth": [0, 5],
       "nouns": [0, 100],
       "subject": [0, 5],
-      "object": [0, 23],
-      "samples": 3,
+      "object": [0, 22],
+      "samples": 1,
       "excluded_rules": []
     },
     "dev": {
       "depth": [0, 5],
       "nouns": [100, 140],
-      "subject": [0, 7],
-      "object": [0, 28],
+      "subject": [5, 7],
+      "object": [22, 27],
       "samples": 1,
       "excluded_rules": []
     },
     "test": {
       "depth": [0, 5],
+      "nouns": [140, 180],
+      "subject": [5, 9],
+      "object": [22, 33],
+      "samples": 1,
+      "excluded_rules": []
+    }
+  },
+  "control:depth":
+  {
+    "seeds": [3, 7, 42],
+    "train": {
+      "depth": [0, 4],
+      "nouns": [0, 100],
+      "subject": [0, 9],
+      "object": [0, 33],
+      "samples": 1,
+      "excluded_rules": []
+    },
+    "dev": {
+      "depth": [4, 7],
+      "nouns": [100, 140],
+      "subject": [0, 9],
+      "object": [0, 33],
+      "samples": 1,
+      "excluded_rules": []
+    },
+    "test": {
+      "depth": [4, 7],
       "nouns": [140, 180],
       "subject": [0, 9],
       "object": [0, 33],
@@ -27,50 +55,22 @@
       "excluded_rules": []
     }
   },
-  "control_2":
+  "control:rule":
   {
-    "seed": 42,
+    "seeds": [3, 7, 42],
     "train": {
       "depth": [0, 5],
       "nouns": [0, 100],
-      "subject": [0, 5],
-      "object": [0, 23],
-      "samples": 3,
-      "excluded_rules": [5, 6, 12, 13]
-    },
-    "dev": {
-      "depth": [0, 5],
-      "nouns": [100, 140],
-      "subject": [0, 7],
-      "object": [0, 28],
-      "samples": 1,
-      "excluded_rules": []
-    },
-    "test": {
-      "depth": [0, 5],
-      "nouns": [140, 180],
       "subject": [0, 9],
       "object": [0, 33],
       "samples": 1,
-      "excluded_rules": []
-    }
-  },
-  "control_3":
-  {
-    "seed": 42,
-    "train": {
-      "depth": [0, 5],
-      "nouns": [0, 100],
-      "subject": [0, 5],
-      "object": [0, 23],
-      "samples": 3,
-      "excluded_rules": [2, 3, 4, 9, 10, 11]
+      "excluded_rules": [2, 3, 4, 5, 6, 9, 10, 11, 12, 13]
     },
     "dev": {
       "depth": [0, 5],
       "nouns": [100, 140],
-      "subject": [0, 7],
-      "object": [0, 28],
+      "subject": [0, 9],
+      "object": [0, 33],
       "samples": 1,
       "excluded_rules": []
     },
