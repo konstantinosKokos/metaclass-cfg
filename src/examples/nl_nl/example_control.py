@@ -230,7 +230,7 @@ def main(splits: str):
         inf_tvs = Lexicon.vos()
         adverbs = Lexicon.adverbs()
         for i, seed in enumerate(experiments[exp]['seeds']):
-            print(f'\tProcessing seed {i} of {len(experiments[exp]["seeds"])}')
+            print(f'\tProcessing seed {i + 1} of {len(experiments[exp]["seeds"])}')
             set_seed(seed)
             shuffle(all_nouns)
             shuffle(su_verbs)
@@ -259,9 +259,9 @@ def main(splits: str):
                            if len((excluded_rules := set(experiments[exp][subset]['excluded_rules'])))
                            else full_grammar)
 
-            implemented[subset] = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
-                                   for tree, (matching, surfaces) in trees.items()}
-                                   for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth,
-                                                                   grammar=grammar).items()}
+                implemented[subset] = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
+                                       for tree, (matching, surfaces) in trees.items()}
+                                       for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth,
+                                                                       grammar=grammar).items()}
             with open(f'./{exp}_{seed}.json', 'w') as out_file:
                 json.dump(implemented, out_file, indent=4)

@@ -14,7 +14,6 @@ SpanRealization = list[tuple[list[int], list[int], tuple[int, int]]]
 Realized = list[tuple[list[int], list[int], str]]
 
 
-
 def abstree_to_labeledtree(tree: AbsTree, n_candidates: set[CategoryMeta], v_candidates: set[CategoryMeta],
                            n_counter: Iterator[int], v_counter: Iterator[int]) -> LabeledTree:
     def _f(_tree: AbsTree):
@@ -69,8 +68,6 @@ def has_no_duplicates(realized: Realized, types: list[CategoryMeta], exclude: se
     strs = realized_to_strs(realized)
     non_excluded = [s for t, s in zip(types, strs) if t not in exclude]
     return (not any(map(eq, strs, strs[1:]))) and len(set(non_excluded)) == len(non_excluded)
-    # print(c1,c2)
-    # return c1 and c2
 
 
 def realized_to_strs(realized: Realized) -> tuple[str, ...]:
@@ -83,7 +80,7 @@ def get_choices(
         exclude: set[CategoryMeta] = frozenset()) -> Iterator[Realized]:
     def rspan(c) -> Realized: return realize_span(c, realization)
     def rtypes(c) -> list[CategoryMeta]: return realize_types(c, realization)
-    def ndupes(c): return has_no_duplicates(c, rtypes(c), exclude)
+    def ndupes(c) -> bool: return has_no_duplicates(c, rtypes(c), exclude)
     return map(rspan, filter(ndupes, product(*map(lambda cat: cat.constants, leaves))))
 
 
