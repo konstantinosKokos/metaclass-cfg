@@ -193,7 +193,8 @@ full_grammar, matching_rules, surf_rules = make_grammar(set())
 
 
 def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str],
-                  obj_verbs: list[str], obj_verbs_inf: list[str], inf_ivs: list[str], inf_tvs: list[tuple[str, str]]):
+                  obj_verbs: list[str], obj_verbs_inf: list[str], inf_ivs: list[str], inf_tvs: list[tuple[str, str]],
+                  adverbs: list[str]):
     NP.constants = nouns
 
     TV_su_ctrl.constants = su_verbs
@@ -202,6 +203,7 @@ def set_constants(nouns: list[str], su_verbs: list[str], su_verbs_inf: list[str]
     INF_obj_ctrl.constants = obj_verbs_inf
     INF_itv.constants = inf_ivs
     INF_tv.constants = inf_tvs
+    MOD_pt.constants = adverbs
     DIE.constants = ['die']
     TE.constants = ['te']
 

@@ -77,8 +77,14 @@ def realized_to_strs(realized: Realized) -> tuple[str, ...]:
     return tuple(r[2] for r in realized)
 
 
-def get_choices(leaves: list[CategoryMeta], exclude: set[CategoryMeta] = frozenset()) -> Iterator[tuple[Category, ...]]:
-    return filter(lambda choice: has_no_duplicates(choice, exclude), product(*map(lambda cat: cat.constants, leaves)))
+def get_choices(
+        leaves: list[CategoryMeta],
+        realization: SpanRealization,
+        exclude: set[CategoryMeta] = frozenset()) -> Iterator[Realized]:
+    def rspan(c) -> Realized: return realize_span(c, realization)
+    def rtypes(c) -> list[CategoryMeta]: return realize_types(c, realization)
+    def ndupes(c): return has_no_duplicates(c, rtypes(c), exclude)
+    return map(rspan, filter(ndupes, product(*map(lambda cat: cat.constants, leaves))))
 
 
 def sample_choices(
@@ -145,8 +151,9 @@ def exhaust_grammar(
         -> dict[int, dict[LabeledTree, tuple[Matching, list[Realized]]]]:
     def choice_fn(leaves: list[CategoryMeta], span_realization: SpanRealization) -> Iterator[Realized]:
         if sample is None:
-            return get_choices(c, exclude_candidates)
-        return sample_choices(c, sample, exclude_candidates)
+            raise NotImplementedError
+            # return get_choices(c, exclude_candidates)
+        return sample_choices(leaves, span_realization, sample, exclude_candidates)
 
     def exhaust_tree(_tree: AbsTree) -> tuple[LabeledTree, tuple[Matching, list[Realized]]]:
         labeled_tree = abstree_to_labeledtree(_tree, nouns, verbs, iter(range(999)), iter(range(999)))
