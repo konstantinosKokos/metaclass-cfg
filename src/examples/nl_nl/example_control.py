@@ -79,12 +79,6 @@ AUX_obj.constants = ['doen']
     NP_s(XYZU) -> NP_s(X) DIE(Y) NP_o(Z) REL(U)
 """
 
-# Todo (DONE): we could remove the rules from CTRL to NP_s, TV_xx_ctrl, NP_o AUX_xx VC, because these cases make the NP_o
-# ambiguous. Rather we only would have rules that explicitly introduce also an NP_o2.
-# Todo (DONE): create cases where SVO order changes, with modifiers,
-#  e.g. "De man belooft de vrouw vandaag VC"/"Vandaag belooft de man de vrouw VC"
-# "De man belooft de vrouw te vertrekken"  "De man belooft de vrouw om te vertrekken"
-
 annotated_rules = [
     # CTRL <- ...
     ((CTRL,             (NP_s, TV_su_ctrl, NP_o2, VC)),
@@ -263,5 +257,5 @@ def main(splits: str):
                                        for tree, (matching, surfaces) in trees.items()}
                                        for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth,
                                                                        grammar=grammar).items()}
-            with open(f'./{exp}_{seed}.json', 'w') as out_file:
+            with open(f'./grammars/{exp.split(":")[0]}/{exp}_{seed}.json', 'w') as out_file:
                 json.dump(implemented, out_file, indent=4)

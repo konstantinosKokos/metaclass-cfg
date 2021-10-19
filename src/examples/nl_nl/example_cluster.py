@@ -1,13 +1,3 @@
-import os.path
-from ...mcfg import CategoryMeta, AbsRule, AbsGrammar
-from typing import Optional as Maybe
-from .span_realization import Matching, Realized, exhaust_grammar
-from .lexicon import Lexicon
-from random import seed as set_seed
-from random import shuffle
-import json
-
-
 """
 Pseudo-code for the description of the grammar.
 
@@ -67,37 +57,6 @@ TV_inf_instruct -> 'leren', 'helpen'
 
 """
 
-# Categories
-S = CategoryMeta('S')
-PREF = CategoryMeta('PREF')
-EMB = CategoryMeta('EMB', 2)
-TE = CategoryMeta('TE')
-
-NP_s = CategoryMeta('NP_s')
-NP_s2 = CategoryMeta('NP_s2')
-NP_o = CategoryMeta('NP_o')
-
-ITV_inf_action = CategoryMeta('ITV_inf_action')
-TV_inf_action = CategoryMeta('TV_inf_action')
-TV_inf_sense = CategoryMeta('TV_inf_sense')
-TV_su_inf_ctrl = CategoryMeta('TV_su_inf_ctrl')
-TV_obj_inf_ctrl = CategoryMeta('TV_obj_inf_ctrl')
-
-VC = CategoryMeta('VC')
-
-# Constants
-NP_s.constants = ['de man', 'de vrouw', 'het kind']
-NP_s2.constants = ['de sollicitant', 'het meisje', 'de socialist']
-NP_o.constants = ['het biertje', 'een pizza']
-PREF.constants = ['Iemand ziet']
-TE.constants = ['te']
-
-ITV_inf_action.constants = ['dansen', 'zingen']
-TV_inf_action.constants = ['drinken', 'eten']
-TV_inf_sense.constants = ['zien', 'horen', 'ruiken', 'voelen', 'leren', 'helpen']
-TV_su_inf_ctrl.constants = ['beloven', 'garanderen']
-TV_obj_inf_ctrl.constants = ['vragen', 'dwingen']
-
 """
 S(XYZ) -> PREF(X) EMB(Y, Z)
 PREF -> '(Iemand ziet)'
@@ -146,83 +105,147 @@ Example: Omdat hij de kraanvogels hielp (te) vergiftigen
     VC(XY) -> TE(X) ITV_inf_action(Y)
 """
 
+from ...mcfg import CategoryMeta, AbsRule, AbsGrammar
+from typing import Optional as Maybe
+from .span_realization import exhaust_grammar
+from .lexicon import Lexicon
+from random import seed as set_seed
+from random import shuffle
+import json
+
+# Categories
+S = CategoryMeta('S')
+PREF = CategoryMeta('PREF')
+EMB = CategoryMeta('EMB', 2)
+TE = CategoryMeta('TE')
+
+NP = CategoryMeta('NP')
+NP_s = CategoryMeta('NP_s')
+NP_s2 = CategoryMeta('NP_s2')
+NP_o = CategoryMeta('NP_o')
+
+INF_itv = CategoryMeta('INF_itv')
+INF_tv = CategoryMeta('INF_tv')
+
+TV_inf_sense = CategoryMeta('TV_inf_sense')
+INF_su_ctrl = CategoryMeta('INF_su_ctrl')
+INF_obj_ctrl = CategoryMeta('INF_obj_ctrl')
+
+VC = CategoryMeta('VC')
+
+
 annotated_rules = [
         ((S,            (PREF, EMB)),
          (dict(),       (False, False)),
          ([(0, 0), (1, 0), (1, 1)],)),
-        ((EMB,          (NP_s, ITV_inf_action)),
+        # EMB <- ...
+        ((EMB,          (NP_s, INF_itv)),
          ({1: 0},       (False, False)),
          ([(0, 0)], [(1, 0)])),
-        ((EMB,          (NP_s, NP_o, TV_inf_action)),
+        ((EMB,          (NP_s, NP_o, INF_tv)),
          ({2: 0},       (False, False, False)),
          ([(0, 0), (1, 0)], [(2, 0)])),
         ((EMB,          (NP_s, TV_inf_sense, EMB)),
          ({1: 0},       (False, False, False)),
          ([(0, 0), (2, 0)], [(1, 0), (2, 1)])),
-        ((EMB,          (NP_s, NP_s2, TV_su_inf_ctrl, VC)),
+        ((EMB,          (NP_s, NP_s2, INF_su_ctrl, VC)),
          ({2: 0},       (False, False, False, 0)),
          ([(0, 0), (1, 0)], [(2, 0), (3, 0)])),
-        ((EMB,          (NP_s, NP_s2, TV_obj_inf_ctrl, VC)),
+        ((EMB,          (NP_s, NP_s2, INF_obj_ctrl, VC)),
          ({2: 0},       (False, False, False, 1)),
          ([(0, 0), (1, 0)], [(2, 0), (3, 0)])),
-        ((VC,           (TE, ITV_inf_action)),
+        # VC <- ...
+        ((VC,           (TE, INF_itv)),
          ({1: None},    (False, False)),
-         ([(0, 0), (1, 0)],))
+         ([(0, 0), (1, 0)],)),
+        # NP <- ...
+        ((NP_s,             (NP,)),
+        (dict(),           (False,)),
+        ([(0, 0)],)),
+        ((NP_o,             (NP,)),
+        (dict(),           (False,)),
+        ([(0, 0)],)),
+        ((NP_s2,            (NP,)),
+        (dict(),           (False,)),
+        ([(0, 0)],)),
 ]
 
 n_candidates = {NP_s, NP_o, NP_s2}
-v_candidates = {ITV_inf_action, TV_inf_action, TV_inf_sense, TV_su_inf_ctrl, TV_obj_inf_ctrl}
-
-grammar = AbsGrammar(AbsRule.from_list([r[0] for r in annotated_rules]))
-
-matching_rules = {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in annotated_rules}
-surf_rules = {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in annotated_rules}
-
+v_candidates = {INF_itv, INF_tv, TV_inf_sense, INF_su_ctrl, INF_obj_ctrl}
 exclude_candidates = {TE}
 
 
-def set_constants(nouns: list[str], su_verbs_inf: list[str], obj_verbs_inf: list[str]):
-    n_idx = len(nouns)//3
-    NP_s.constants = nouns[:n_idx]
-    NP_s2.constants = nouns[n_idx:2*n_idx]
-    NP_o.constants = nouns[2*n_idx:]
-
-    TV_su_inf_ctrl.constants = su_verbs_inf
-    TV_obj_inf_ctrl.constants = obj_verbs_inf
+def make_grammar(excluded_rules: set[int]) -> tuple[AbsGrammar, dict[AbsRule, ...], dict[AbsRule, ...]]:
+    subrules = [r for i, r in enumerate(annotated_rules) if i not in excluded_rules]
+    return (AbsGrammar(AbsRule.from_list([r[0] for r in subrules])),
+            {AbsRule(lhs, rhs): matching_rule for ((lhs, rhs), matching_rule, _) in subrules},
+            {AbsRule(lhs, rhs): surf_rule for ((lhs, rhs), _, surf_rule) in subrules})
 
 
-def get_grammar(max_depth: int, sample: Maybe[int], min_depth: int = 0):
+full_grammar, matching_rules, surf_rules = make_grammar(set())
+
+
+def set_constants(nouns: list[str], su_verbs_inf: list[str], obj_verbs_inf: list[str],
+                  inf_ivs: list[str], inf_tvs: list[str], sense_tvs: list[str]):
+    NP.constants = nouns
+
+    INF_su_ctrl.constants = su_verbs_inf
+    INF_obj_ctrl.constants = obj_verbs_inf
+    INF_itv.constants = inf_ivs
+    INF_tv.constants = [tv for tv in inf_tvs if tv not in sense_tvs]
+    TV_inf_sense.constants = sense_tvs
+    PREF.constants = ['Iemand ziet']
+    TE.constants = ['te']
+
+
+def get_grammar(max_depth: int, sample: Maybe[int], min_depth: int = 0, grammar: AbsGrammar = full_grammar):
     return exhaust_grammar(grammar, S, surf_rules, matching_rules, max_depth, n_candidates,
                            v_candidates, sample, min_depth, exclude_candidates)
 
 
-def json_string(matching: Matching, surfaces: list[Realized]):
-    return json.dumps({'matching': matching, 'surfaces': surfaces})
+def main(splits: str):
+    with open(splits, 'r') as f:
+        experiments = json.load(f)
+    for exp in experiments:
+        implemented = dict()
 
+        print(f'Processing {exp}...')
+        # Init lexicon
+        all_nouns = Lexicon.de_nouns()
+        su_verbs_inf = Lexicon.sub_control_verbs_inf()
+        obj_verbs_inf = Lexicon.obj_control_verbs_inf()
+        inf_ivs = Lexicon.infinitive_verbs()
+        inf_tvs = Lexicon.vos()
+        sense_tvs = Lexicon.sense_tvs()
+        for i, seed in enumerate(experiments[exp]['seeds']):
+            print(f'\tProcessing seed {i + 1} of {len(experiments[exp]["seeds"])}')
+            set_seed(seed)
+            shuffle(all_nouns)
+            shuffle(su_verbs_inf)
+            shuffle(obj_verbs_inf)
+            shuffle(inf_ivs)
+            shuffle(inf_tvs)
+            shuffle(sense_tvs)
+            for subset in ['train', 'dev', 'test']:
+                print(f'\t\tProcessing {subset}...')
+                noun_l, noun_r = experiments[exp][subset]['nouns']
+                su_verb_l, su_verb_r = experiments[exp][subset]['subject']
+                obj_verb_l, obj_verb_r = experiments[exp][subset]['object']
+                min_depth, max_depth = experiments[exp][subset]['depth']
+                num_samples = experiments[exp][subset]['samples']
+                set_constants(nouns=all_nouns[noun_l:noun_r],
+                              su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
+                              obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r],
+                              inf_ivs=inf_ivs,
+                              inf_tvs=inf_tvs,
+                              sense_tvs=sense_tvs)
+                grammar = (make_grammar(excluded_rules)[0]
+                           if len((excluded_rules := set(experiments[exp][subset]['excluded_rules'])))
+                           else full_grammar)
 
-def main(max_depth: int, out_fn: str, noun_idxs: tuple[int, int], su_verb_idxs: tuple[int, int],
-         obj_verb_idxs: tuple[int, int], num_samples: Maybe[int] = None, seed: Maybe[int] = None):
-    all_nouns = Lexicon.de_nouns()
-    su_verbs_inf = Lexicon.sub_control_verbs_inf()
-    obj_verbs_inf = Lexicon.obj_control_verbs_inf()
-
-    if seed is not None:
-        set_seed(seed)
-        shuffle(all_nouns)
-        shuffle(su_verbs_inf)
-        shuffle(obj_verbs_inf)
-
-    (noun_l, noun_r) = noun_idxs
-    (su_verb_l, su_verb_r) = su_verb_idxs
-    (obj_verb_l, obj_verb_r) = obj_verb_idxs
-    set_constants(nouns=all_nouns[noun_l:noun_r],
-                  su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
-                  obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r])
-
-    if os.path.isfile(out_fn):
-        os.remove(out_fn)
-    with open(out_fn, 'a') as out_file:
-        implemented = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
-                               for tree, (matching, surfaces) in trees.items()}
-                       for depth, trees in get_grammar(max_depth, num_samples)}
-        json.dump(implemented, out_file, indent=4)
+                implemented[subset] = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
+                                               for tree, (matching, surfaces) in trees.items()}
+                                       for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth,
+                                                                       grammar=grammar).items()}
+            with open(f'./grammars/{exp.split(":")[0]}/{exp}_{seed}.json', 'w') as out_file:
+                json.dump(implemented, out_file, indent=4)
