@@ -1,6 +1,6 @@
 from typing import Union, TypeVar, Iterator, Callable
 from dataclasses import dataclass
-from itertools import product, tee
+from itertools import product, chain
 
 
 class Category:
