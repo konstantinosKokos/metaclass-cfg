@@ -106,7 +106,7 @@ Example: Omdat hij de kraanvogels hielp (te) vergiftigen
     VC(XY) -> TE(X) ITV_inf_action(Y)
 """
 
-" TODO: Add declarative forms of the embedded clauses, so we can experiment with it.
+""" TODO: Add declarative forms of the embedded clauses, so we can experiment with it. """
 
 from ...mcfg import CategoryMeta, AbsRule, AbsGrammar
 from typing import Optional as Maybe
