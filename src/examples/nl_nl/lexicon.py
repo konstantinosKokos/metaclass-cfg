@@ -9,9 +9,9 @@ _obj_cv_path = os.path.join(_data_dir, 'obj_control_verbs.txt')
 _sub_cv_path = os.path.join(_data_dir, 'sub_control_verbs.txt')
 _inf_path = os.path.join(_data_dir, 'infinitives.txt')
 _t_inf_path = os.path.join(_data_dir, 'person_transitive_verbs.txt')
-_s_inf_path = os.path.join(_data_dir, 'sense_transitive_verbs.txt')
 _adv_path = os.path.join(_data_dir, 'adverbs.txt')
-
+_ipp_itv_path = os.path.join(_data_dir, 'ipp_intrans_infinitives.txt')
+_ipp_tv_path = os.path.join(_data_dir, 'ipp_trans_infinitives.txt')
 
 def _load_plain(path: str) -> list[str]:
     return [ln.strip() for ln in open(path, 'r').readlines() if '_' not in ln]
@@ -29,8 +29,9 @@ _obj_control_verbs_present, _obj_control_verbs_inf = _load_control_verbs(_obj_cv
 _sub_control_verbs_present, _sub_control_verbs_inf = _load_control_verbs(_sub_cv_path)
 _infinitive_verbs = _load_plain(_inf_path)
 _transitive_infinitive_verbs = _load_plain(_t_inf_path)
-_sense_transitive_infinitive_verbs = _load_plain(_s_inf_path)
 _adverbs = _load_plain(_adv_path)
+_ipp_intransitive_infinitive_verbs = _load_plain(_ipp_itv_path)
+_ipp_transitive_infinitive_verbs = _load_plain(_ipp_tv_path)
 
 
 class Lexicon:
@@ -71,5 +72,9 @@ class Lexicon:
         return list(iter(_adverbs))
 
     @staticmethod
-    def sense_tvs():
-        return list(iter(_sense_transitive_infinitive_verbs))
+    def ipp_tvs():
+        return list(iter(_ipp_transitive_infinitive_verbs))
+
+    @staticmethod
+    def ipp_itvs():
+        return list(iter(_ipp_intransitive_infinitive_verbs))

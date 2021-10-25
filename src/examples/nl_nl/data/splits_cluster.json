@@ -7,7 +7,7 @@
       "nouns": [0, 100],
       "subject": [0, 5],
       "object": [0, 22],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": []
     },
     "dev": {
@@ -15,7 +15,7 @@
       "nouns": [100, 400],
       "subject": [5, 7],
       "object": [22, 27],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": []
     },
     "test": {
@@ -23,7 +23,7 @@
       "nouns": [400, 700],
       "subject": [5, 9],
       "object": [22, 33],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": []
     }
   },
@@ -35,7 +35,7 @@
       "nouns": [0, 100],
       "subject": [0, 9],
       "object": [0, 33],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": []
     },
     "dev": {
@@ -43,7 +43,7 @@
       "nouns": [100, 400],
       "subject": [0, 9],
       "object": [0, 33],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": []
     },
     "test": {
@@ -51,7 +51,7 @@
       "nouns": [400, 700],
       "subject": [0, 9],
       "object": [0, 33],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": []
     }
   },
@@ -63,7 +63,7 @@
       "nouns": [0, 100],
       "subject": [0, 9],
       "object": [0, 33],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": [4, 5]
     },
     "dev": {
@@ -71,7 +71,7 @@
       "nouns": [100, 400],
       "subject": [0, 9],
       "object": [0, 33],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": []
     },
     "test": {
@@ -79,7 +79,7 @@
       "nouns": [400, 700],
       "subject": [0, 9],
       "object": [0, 33],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": []
     }
   },
@@ -91,7 +91,7 @@
       "nouns": [0, 100],
       "subject": [0, 5],
       "object": [0, 22],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": [4, 5]
     },
     "dev": {
@@ -99,7 +99,7 @@
       "nouns": [100, 400],
       "subject": [5, 7],
       "object": [22, 27],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": []
     },
     "test": {
@@ -107,7 +107,7 @@
       "nouns": [400, 700],
       "subject": [5, 9],
       "object": [22, 33],
-      "samples": 1,
+      "samples": 3,
       "excluded_rules": []
     }
   }
