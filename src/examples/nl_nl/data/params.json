@@ -7,8 +7,8 @@
     },
   "cluster":
   {
-    "depth": [0, 8],
-    "samples": 10,
-    "seed": 42
+    "depth": [0, 10],
+    "samples": 30,
+    "seed": 86
   }
 }

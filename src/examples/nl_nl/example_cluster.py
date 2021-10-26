@@ -184,7 +184,7 @@ annotated_rules = [
            3: 0,
            4: 0},       (False, False, False, False, False)),
          ([(0, 0), (1, 0)], [(2, 0), (3, 0), (4, 0)])),
-        # Transitive case + IPP (te)
+        # # Transitive case + IPP (te)
         ((EMB,          (NP_s, NP_o, IPP_itv_te, TE, INF_tv)),
          ({2: 0,
            4: 0},       (False, False, False, False, False)),
@@ -200,11 +200,11 @@ annotated_rules = [
          ([(0, 0), (2, 0)], [(1, 0), (2, 1)])),
         # IPP (te) case with word order variation (the 'third construction' of Augustinus)
         # It's a variation on the transitive case with an IPP (te) verb, allowing the verb cluster to break open.
-        ((EMB,          (NP_s, NP_o, IPP_itv_te, TE, INF_tv)),
-         ({2: 0,
+        ((EMB,          (NP_s, IPP_itv_te, NP_o, TE, INF_tv)),
+         ({1: 0,
            4: 0},       (False, False, False, False, False)),
-         ([(0, 0), (2, 0), (1, 0)], [(3, 0), (4, 0)])),
-        # Inserting control verbs
+         ([(0, 0), (1, 0), (2, 0)], [(3, 0), (4, 0)])),
+        # # Inserting control verbs
         ((EMB,          (NP_s, NP_s2, INF_su_ctrl, VC)),
          ({2: 0},       (False, False, False, 0)),
          ([(0, 0), (1, 0)], [(2, 0), (3, 0)])),
@@ -229,7 +229,8 @@ annotated_rules = [
 ]
 
 n_candidates = {NP_s, NP_o, NP_s2}
-v_candidates = {INF_itv, INF_tv, IPP_itv, IPP_tv, INF_su_ctrl, INF_obj_ctrl}
+# n_candidates = {NP_s, NP_o}
+v_candidates = {INF_itv, INF_tv, IPP_itv, IPP_tv, IPP_itv_te, INF_su_ctrl, INF_obj_ctrl}
 exclude_candidates = {TE}
 
 
@@ -317,56 +318,46 @@ def extract_sentences(results: dict) -> list[str]:
 def get_sentences(results: dict):
     return {d: extract_sentences(results[d]) for d in results}
 
-def main(splits: str):
-    with open(splits, 'r') as f:
-        experiments = json.load(f)
-    for exp in experiments:
-        implemented = dict()
 
-        print(f'Processing {exp}...')
-        # Init lexicon
-        all_nouns = Lexicon.de_nouns()
-        su_verbs_inf = Lexicon.sub_control_verbs_inf()
-        obj_verbs_inf = Lexicon.obj_control_verbs_inf()
-        inf_ivs = Lexicon.infinitive_verbs()
-        inf_tvs = Lexicon.vos()
-        ipp_itvs = Lexicon.ipp_itvs()
-        ipp_tvs = Lexicon.ipp_tvs()
-        ipp_itvs_te = Lexicon.ipp_itvs_te()
+def main(gen_file: str):
+    with open(gen_file, 'r') as f:
+        experiment = json.load(f)['cluster']
 
-        for i, seed in enumerate(experiments[exp]['seeds']):
-            print(f'\tProcessing seed {i + 1} of {len(experiments[exp]["seeds"])}')
-            set_seed(seed)
-            shuffle(all_nouns)
-            shuffle(su_verbs_inf)
-            shuffle(obj_verbs_inf)
-            shuffle(inf_ivs)
-            shuffle(inf_tvs)
-            shuffle(ipp_itvs)
-            shuffle(ipp_tvs)
-            shuffle(ipp_itvs_te)
-            for subset in ['train', 'dev', 'test']:
-                print(f'\t\tProcessing {subset}...')
-                noun_l, noun_r = experiments[exp][subset]['nouns']
-                su_verb_l, su_verb_r = experiments[exp][subset]['subject']
-                obj_verb_l, obj_verb_r = experiments[exp][subset]['object']
-                min_depth, max_depth = experiments[exp][subset]['depth']
-                num_samples = experiments[exp][subset]['samples']
-                set_constants(nouns=all_nouns[noun_l:noun_r],
-                              su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
-                              obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r],
-                              inf_ivs=inf_ivs,
-                              inf_tvs=inf_tvs,
-                              ipp_itvs=ipp_itvs,
-                              ipp_tvs=ipp_tvs,
-                              ipp_tvs_te=ipp_itvs_te)
-                grammar = (make_grammar(excluded_rules)[0]
-                           if len((excluded_rules := set(experiments[exp][subset]['excluded_rules'])))
-                           else full_grammar)
+    all_nouns = Lexicon.de_nouns()
+    su_verbs_inf = Lexicon.sub_control_verbs_inf()
+    obj_verbs_inf = Lexicon.obj_control_verbs_inf()
+    inf_ivs = Lexicon.infinitive_verbs()
+    inf_tvs = Lexicon.vos()
+    ipp_itvs = Lexicon.ipp_itvs()
+    ipp_tvs = Lexicon.ipp_tvs()
+    ipp_itvs_te = Lexicon.ipp_itvs_te()
 
-                implemented[subset] = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
-                                               for tree, (matching, surfaces) in trees.items()}
-                                       for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth,
-                                                                       grammar=grammar).items()}
-            with open(f'./grammars/{exp.split(":")[0]}/{exp}_{seed}.json', 'w') as out_file:
-                json.dump(implemented, out_file, indent=4)
+    seed = experiment["seed"]
+    set_seed(seed)
+    shuffle(all_nouns)
+    shuffle(su_verbs_inf)
+    shuffle(obj_verbs_inf)
+    shuffle(inf_ivs)
+    shuffle(inf_tvs)
+    shuffle(ipp_itvs)
+    shuffle(ipp_tvs)
+    shuffle(ipp_itvs_te)
+
+    min_depth, max_depth = experiment['depth']
+    num_samples = experiment['samples']
+
+    set_constants(nouns=all_nouns,
+                  su_verbs_inf=su_verbs_inf,
+                  obj_verbs_inf=obj_verbs_inf,
+                  inf_ivs=inf_ivs,
+                  inf_tvs=inf_tvs,
+                  ipp_itvs=ipp_itvs,
+                  ipp_tvs=ipp_tvs,
+                  ipp_itvs_te=ipp_itvs_te)
+
+    result = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
+                      for tree, (matching, surfaces) in trees.items()}
+              for depth, trees in get_grammar(max_depth, num_samples,
+                                              min_depth=min_depth, grammar=full_grammar).items()}
+    with open(f'./grammars/cluster_{seed}.json', 'w') as out_file:
+        json.dump(result, out_file, indent=4)
