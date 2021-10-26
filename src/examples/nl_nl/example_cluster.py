@@ -133,6 +133,7 @@ INF_tv = CategoryMeta('INF_tv')
 
 IPP_itv = CategoryMeta('IPP_itv')
 IPP_tv = CategoryMeta('IPP_tv')
+IPP_itv_te = CategoryMeta('IPP_itv_te')
 
 INF_su_ctrl = CategoryMeta('INF_su_ctrl')
 INF_obj_ctrl = CategoryMeta('INF_obj_ctrl')
@@ -159,6 +160,16 @@ annotated_rules = [
            2: 0,
            3: 0},       (False, False, False, False)),
          ([(0, 0)], [(1, 0), (2, 0), (3, 0)])),
+        # Intransitive case + IPP (te)
+        ((EMB,          (NP_s, IPP_itv_te, TE, INF_itv)),
+         ({1: 0,
+           3: 0},       (False, False, False, False)),
+         ([(0, 0)], [(1, 0), (2, 0), (3, 0)])),
+        ((EMB,          (NP_s, IPP_itv_te, TE, IPP_itv_te, TE, INF_itv)),
+         ({1: 0,
+           3: 0,
+           5: 0},       (False, False, False, False, False, False)),
+         ([(0, 0)], [(1, 0), (2, 0), (3, 0), (4, 0), (5, 0)])),
         # Transitive case
         ((EMB,          (NP_s, NP_o, INF_tv)),
          ({2: 0},       (False, False, False)),
@@ -173,10 +184,26 @@ annotated_rules = [
            3: 0,
            4: 0},       (False, False, False, False, False)),
          ([(0, 0), (1, 0)], [(2, 0), (3, 0), (4, 0)])),
+        # Transitive case + IPP (te)
+        ((EMB,          (NP_s, NP_o, IPP_itv_te, TE, INF_tv)),
+         ({2: 0,
+           4: 0},       (False, False, False, False, False)),
+         ([(0, 0), (1, 0)], [(2, 0), (3, 0), (4, 0)])),
+        ((EMB,          (NP_s, NP_o, IPP_itv_te, TE, IPP_itv_te, TE, INF_tv)),
+         ({2: 0,
+           4: 0,
+           6: 0},       (False, False, False, False, False, False, False)),
+         ([(0, 0), (1, 0)], [(2, 0), (3, 0), (4, 0), (5, 0), (6, 0)])),
         # EMB recursion
         ((EMB,          (NP_s, IPP_tv, EMB)),
          ({1: 0},       (False, False, False)),
          ([(0, 0), (2, 0)], [(1, 0), (2, 1)])),
+        # IPP (te) case with word order variation (the 'third construction' of Augustinus)
+        # It's a variation on the transitive case with an IPP (te) verb, allowing the verb cluster to break open.
+        ((EMB,          (NP_s, NP_o, IPP_itv_te, TE, INF_tv)),
+         ({2: 0,
+           4: 0},       (False, False, False, False, False)),
+         ([(0, 0), (2, 0), (1, 0)], [(3, 0), (4, 0)])),
         # Inserting control verbs
         ((EMB,          (NP_s, NP_s2, INF_su_ctrl, VC)),
          ({2: 0},       (False, False, False, 0)),
@@ -217,7 +244,8 @@ full_grammar, matching_rules, surf_rules = make_grammar(set())
 
 
 def set_constants(nouns: list[str], su_verbs_inf: list[str], obj_verbs_inf: list[str],
-                  inf_ivs: list[str], inf_tvs: list[str], ipp_itvs: list[str], ipp_tvs: list[str]):
+                  inf_ivs: list[str], inf_tvs: list[str], ipp_itvs: list[str], ipp_tvs: list[str],
+                  ipp_itvs_te: list[str]):
     NP.constants = nouns
 
     INF_su_ctrl.constants = su_verbs_inf
@@ -226,6 +254,7 @@ def set_constants(nouns: list[str], su_verbs_inf: list[str], obj_verbs_inf: list
     INF_tv.constants = [tv for tv in inf_tvs if tv not in ipp_tvs]
     IPP_itv.constants = ipp_itvs
     IPP_tv.constants = ipp_tvs
+    IPP_itv_te.constants = ipp_itvs_te
     PREF.constants = ['Iemand ziet']
     TE.constants = ['te']
 
@@ -244,6 +273,7 @@ def setup_grammar():
     inf_tvs = Lexicon.vos()
     ipp_itvs = Lexicon.ipp_itvs()
     ipp_tvs = Lexicon.ipp_tvs()
+    ipp_itvs_te = Lexicon.ipp_itvs_te()
 
     seed = 2353290823
     set_seed(seed)
@@ -254,6 +284,7 @@ def setup_grammar():
     shuffle(inf_tvs)
     shuffle(ipp_itvs)
     shuffle(ipp_tvs)
+    shuffle(ipp_itvs_te)
 
     noun_l, noun_r = 0, 100
     su_verb_l, su_verb_r = 0, 9
@@ -266,7 +297,8 @@ def setup_grammar():
                   inf_ivs=inf_ivs,
                   inf_tvs=inf_tvs,
                   ipp_itvs=ipp_itvs,
-                  ipp_tvs=ipp_tvs)
+                  ipp_tvs=ipp_tvs,
+                  ipp_itvs_te=ipp_itvs_te)
     grammar = full_grammar
     results = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
                for tree, (matching, surfaces) in trees.items()}
@@ -300,6 +332,7 @@ def main(splits: str):
         inf_tvs = Lexicon.vos()
         ipp_itvs = Lexicon.ipp_itvs()
         ipp_tvs = Lexicon.ipp_tvs()
+        ipp_itvs_te = Lexicon.ipp_itvs_te()
 
         for i, seed in enumerate(experiments[exp]['seeds']):
             print(f'\tProcessing seed {i + 1} of {len(experiments[exp]["seeds"])}')
@@ -311,6 +344,7 @@ def main(splits: str):
             shuffle(inf_tvs)
             shuffle(ipp_itvs)
             shuffle(ipp_tvs)
+            shuffle(ipp_itvs_te)
             for subset in ['train', 'dev', 'test']:
                 print(f'\t\tProcessing {subset}...')
                 noun_l, noun_r = experiments[exp][subset]['nouns']
@@ -324,7 +358,8 @@ def main(splits: str):
                               inf_ivs=inf_ivs,
                               inf_tvs=inf_tvs,
                               ipp_itvs=ipp_itvs,
-                              ipp_tvs=ipp_tvs)
+                              ipp_tvs=ipp_tvs,
+                              ipp_tvs_te=ipp_itvs_te)
                 grammar = (make_grammar(excluded_rules)[0]
                            if len((excluded_rules := set(experiments[exp][subset]['excluded_rules'])))
                            else full_grammar)
