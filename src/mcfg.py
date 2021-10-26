@@ -94,45 +94,10 @@ class AbsGrammar:
         self.multiplicity = max(map(lambda rule: rule.multiplicity, rules))
 
     def generate(self, goal: CategoryMeta, depth: int, filter_empty: bool = True) -> Iterator[AbsTree]:
-        # ret = self.expand_n([goal], depth)
         ret = self.expand_tree(goal, depth)
         ret = filter(realizable, ret) if filter_empty else ret
         ret = filter(lambda t: get_depth(t) == depth, ret)
         return ret
-
-    # WE STILL NEED TO RETURN SINGLE CATEGORYMETAS....
-    # BECAUSE WE MAY EXPAND SYMBOL A INTO B AND C, BUT B IS NOW DONE WHERE C STILL NEEDS TO BE EXPANDED. THEN THE
-    # METHOD WILL STILL RETURN [] BECAUSE B CANNOT BE EXPANDED ANYMORE.
-    # I THINK PRODUCT WILL RETURN [] IF ONE OF ITS OPERANDS DOES NOT HAVE ANY CONTENT OR SMTH.
-    # def expand_one(self, tree: AbsTree) -> Iterator[AbsTree]:
-    #     if isinstance(tree, CategoryMeta):
-    #         if not self.applicable(tree):
-    #             yield [[]]
-    #         else:
-    #             yield from ((tree, rule.rhs) for rule in self.applicable(tree))
-    #     elif isinstance(tree, list):
-    #         print(tree)
-    #         yield [[]]
-    #     else:
-    #         root, children = tree
-    #         yield from ((root, p) for p in product(*[list(self.expand_one(c)) for c in children]))
-    #
-    # def expand_n(self, fringe: Iterator[AbsTree], n: int) -> Iterator[AbsTree]:
-    #     for i in range(n):
-    #         fringe = chain.from_iterable(self.expand_one(tree) for tree in fringe)
-    #     yield from fringe
-
-    # def expand_tree(self, tree: AbsTree, depth: int) -> Iterator[tuple[int, AbsTree]]:
-    #     if depth < 0:
-    #         return
-    #     if isinstance(tree, CategoryMeta):
-    #         yield depth, tree
-    #         for rule in self.applicable(tree):
-    #             yield from self.expand_tree((tree, rule.rhs), depth - 1)
-    #     else:
-    #         root, children = tree
-    #         options = product(*[list(self.expand_tree(c, depth)) for c in children])
-    #         yield from ((d, (root, p)) for d, p in options)
 
     def expand_tree(self, tree: AbsTree, depth: int) -> Iterator[AbsTree]:
         if depth < 0:
