@@ -207,55 +207,45 @@ def get_grammar(max_depth: int, sample: Maybe[int], min_depth: int = 0, grammar:
                            v_candidates, sample, min_depth, exclude_candidates)
 
 
-def main(splits: str):
-    with open(splits, 'r') as f:
-        experiments = json.load(f)
-    for exp in experiments:
-        implemented = dict()
+def main(gen_file: str):
+    with open(gen_file, 'r') as f:
+        experiment = json.load(f)['control']
 
-        print(f'Processing {exp}...')
-        # Init lexicon
-        all_nouns = Lexicon.de_nouns()
-        su_verbs = Lexicon.sub_control_verbs_present()
-        su_verbs_inf = Lexicon.sub_control_verbs_inf()
-        obj_verbs = Lexicon.obj_control_verbs_present()
-        obj_verbs_inf = Lexicon.obj_control_verbs_inf()
-        inf_ivs = Lexicon.infinitive_verbs()
-        inf_tvs = Lexicon.vos()
-        adverbs = Lexicon.adverbs()
-        for i, seed in enumerate(experiments[exp]['seeds']):
-            print(f'\tProcessing seed {i + 1} of {len(experiments[exp]["seeds"])}')
-            set_seed(seed)
-            shuffle(all_nouns)
-            shuffle(su_verbs)
-            shuffle(su_verbs_inf)
-            shuffle(obj_verbs)
-            shuffle(obj_verbs_inf)
-            shuffle(inf_ivs)
-            shuffle(inf_tvs)
-            shuffle(adverbs)
-            for subset in ['train', 'dev', 'test']:
-                print(f'\t\tProcessing {subset}...')
-                noun_l, noun_r = experiments[exp][subset]['nouns']
-                su_verb_l, su_verb_r = experiments[exp][subset]['subject']
-                obj_verb_l, obj_verb_r = experiments[exp][subset]['object']
-                min_depth, max_depth = experiments[exp][subset]['depth']
-                num_samples = experiments[exp][subset]['samples']
-                set_constants(nouns=all_nouns[noun_l:noun_r],
-                              su_verbs=su_verbs[su_verb_l:su_verb_r],
-                              su_verbs_inf=su_verbs_inf[su_verb_l:su_verb_r],
-                              obj_verbs=obj_verbs[obj_verb_l:obj_verb_r],
-                              obj_verbs_inf=obj_verbs_inf[obj_verb_l:obj_verb_r],
-                              inf_ivs=inf_ivs,
-                              inf_tvs=inf_tvs,
-                              adverbs=adverbs)
-                grammar = (make_grammar(excluded_rules)[0]
-                           if len((excluded_rules := set(experiments[exp][subset]['excluded_rules'])))
-                           else full_grammar)
+    all_nouns = Lexicon.de_nouns()
+    su_verbs = Lexicon.sub_control_verbs_present()
+    su_verbs_inf = Lexicon.sub_control_verbs_inf()
+    obj_verbs = Lexicon.obj_control_verbs_present()
+    obj_verbs_inf = Lexicon.obj_control_verbs_inf()
+    inf_ivs = Lexicon.infinitive_verbs()
+    inf_tvs = Lexicon.vos()
+    adverbs = Lexicon.adverbs()
 
-                implemented[subset] = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
-                                       for tree, (matching, surfaces) in trees.items()}
-                                       for depth, trees in get_grammar(max_depth, num_samples, min_depth=min_depth,
-                                                                       grammar=grammar).items()}
-            with open(f'./grammars/{exp.split(":")[0]}/{exp}_{seed}.json', 'w') as out_file:
-                json.dump(implemented, out_file, indent=4)
+    seed = experiment["seed"]
+    set_seed(seed)
+    shuffle(all_nouns)
+    shuffle(su_verbs)
+    shuffle(su_verbs_inf)
+    shuffle(obj_verbs)
+    shuffle(obj_verbs_inf)
+    shuffle(inf_ivs)
+    shuffle(inf_tvs)
+    shuffle(adverbs)
+
+    min_depth, max_depth = experiment['depth']
+    num_samples = experiment['samples']
+
+    set_constants(nouns=all_nouns,
+                  su_verbs=su_verbs,
+                  su_verbs_inf=su_verbs_inf,
+                  obj_verbs=obj_verbs,
+                  obj_verbs_inf=obj_verbs_inf,
+                  inf_ivs=inf_ivs,
+                  inf_tvs=inf_tvs,
+                  adverbs=adverbs)
+
+    result = {depth: {str(tree): (matching, [str(surf) for surf in surfaces])
+                      for tree, (matching, surfaces) in trees.items()}
+              for depth, trees in get_grammar(max_depth, num_samples,
+                                              min_depth=min_depth, grammar=full_grammar).items()}
+    with open(f'./grammars/control_{seed}.json', 'w') as out_file:
+        json.dump(result, out_file, indent=4)
