@@ -315,6 +315,7 @@ def extract_sentence(inp: str) -> str:
 def extract_sentences(results: dict) -> list[str]:
     return [s for (m, surfs) in results.values() for s in list(map(extract_sentence, surfs))]
 
+
 def get_sentences(results: dict):
     return {d: extract_sentences(results[d]) for d in results}
 
