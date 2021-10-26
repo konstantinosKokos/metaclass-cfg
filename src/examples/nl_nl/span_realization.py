@@ -89,12 +89,11 @@ def sample_choices(
         span_realization: SpanRealization,
         n: int,
         exclude: set[CategoryMeta] = frozenset()) -> Iterator[Realized]:
-    returned, limit = set(), 0
-    while limit := limit + 1 < 1 + n ** 2 and len(returned) < n:
+    for i in range(n):
         choice = tuple([choose(cat.constants) for cat in leaves])
-        realized, types = realize_span(choice, span_realization), realize_types(choice, span_realization)
-        if has_no_duplicates(realized, types, exclude) and (t := realized_to_strs(realized)) not in returned:
-            returned.add(t)
+        realized = realize_span(choice, span_realization)
+        types = realize_types(choice, span_realization)
+        if has_no_duplicates(realized, types, exclude):
             yield realized
 
 
