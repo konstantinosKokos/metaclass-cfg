@@ -1,0 +1,14 @@
+{
+  "control":
+    {
+      "depth": [0, 6],
+      "samples": 10,
+      "seed": 42
+    },
+  "cluster":
+  {
+    "depth": [0, 10],
+    "samples": 30,
+    "seed": 86
+  }
+}

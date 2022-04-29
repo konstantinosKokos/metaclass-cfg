@@ -1,6 +1,8 @@
-from ...mcfg import Category, CategoryMeta, Tree, AbsTree, AbsRule
-from typing import Union, Iterator
+from ...mcfg import Category, CategoryMeta, Tree, AbsTree, AbsRule, AbsGrammar
+from typing import Union, Iterator, Sequence
 from typing import Optional as Maybe
+from random import choice as choose
+from operator import eq
 from itertools import product
 
 LabeledNode = tuple[Maybe[int], Maybe[int],  CategoryMeta]
@@ -26,9 +28,8 @@ def abstree_to_labeledtree(tree: AbsTree, n_candidates: set[CategoryMeta], v_can
 
     if isinstance(tree, CategoryMeta):
         return assign_node(tree)
-    if isinstance(tree, tuple):
-        parent, children = tree
-        return assign_node(parent), tuple(map(_f, children))
+    parent, children = tree
+    return assign_node(parent), tuple(map(_f, children))
 
 
 def get_top(_tree: LabeledTree) -> LabeledNode:
@@ -52,7 +53,7 @@ def get_matchings(tree: LabeledTree, matching_rules: MatchingRule, inheritance: 
         ret.update(get_matchings(
             child,
             matching_rules,
-            get_top(children[inh])[0] if isinstance(inh, int) else inheritance if inh else None))
+            get_top(children[inh])[0] if not isinstance(inh, bool) else inheritance if inh else None))
     return ret
 
 
@@ -63,13 +64,46 @@ def project_tree(tree: LabeledTree) -> list[CategoryMeta]:
     return sum([project_tree(c) for c in children], [])
 
 
-def get_choices(leaves: list[CategoryMeta]) -> list[list[Category]]:
-    constants = [leaf.constants for leaf in leaves]
-    return list(map(list, product(*constants)))
+def has_no_duplicates(realized: Realized, types: list[CategoryMeta], exclude: set[CategoryMeta] = frozenset()) -> bool:
+    strs = realized_to_strs(realized)
+    non_excluded = [s for t, s in zip(types, strs) if t not in exclude]
+    return (not any(map(eq, strs, strs[1:]))) and len(set(non_excluded)) == len(non_excluded)
 
 
-def realize_span(leaves: list[Category], span_realization: SpanRealization) -> Realized:
+def realized_to_strs(realized: Realized) -> tuple[str, ...]:
+    return tuple(r[2] for r in realized)
+
+
+def get_choices(
+        leaves: list[CategoryMeta],
+        realization: SpanRealization,
+        exclude: set[CategoryMeta] = frozenset()) -> Iterator[Realized]:
+    def rspan(c) -> Realized: return realize_span(c, realization)
+    def rtypes(c) -> list[CategoryMeta]: return realize_types(c, realization)
+    def ndupes(c) -> bool: return has_no_duplicates(c, rtypes(c), exclude)
+    return map(rspan, filter(ndupes, product(*map(lambda cat: cat.constants, leaves))))
+
+
+def sample_choices(
+        leaves: list[CategoryMeta],
+        span_realization: SpanRealization,
+        n: int,
+        exclude: set[CategoryMeta] = frozenset()) -> Iterator[Realized]:
+    for i in range(n):
+        choice = tuple([choose(cat.constants) for cat in leaves])
+        realized = realize_span(choice, span_realization)
+        types = realize_types(choice, span_realization)
+        if has_no_duplicates(realized, types, exclude):
+            yield realized
+
+
+def realize_span(leaves: Sequence[Category], span_realization: SpanRealization) -> Realized:
     return [(nps, vps, leaves[idx][coord]) for nps, vps, (idx, coord) in span_realization]
+
+
+# noinspection PyTypeChecker
+def realize_types(leaves: Sequence[Category], span_realization: SpanRealization) -> list[CategoryMeta]:
+    return [type(leaves[idx]) for _, _, (idx, _) in span_realization]
 
 
 def labeled_tree_to_realization(
@@ -97,3 +131,33 @@ def labeled_tree_to_realization(
         offset, branch_realization = _f(child, offset)
         branch_realizations.append(branch_realization)
     return offset, [sum([branch_realizations[idx][crd] for idx, crd in res_crd], []) for res_crd in surf_rule]
+
+
+def exhaust_grammar(
+        grammar: AbsGrammar,
+        terminal: CategoryMeta,
+        surface_rules: dict[AbsRule, tuple[list[tuple[int, int]], ...]],
+        matching_rules:  dict[AbsRule, tuple[dict[int, Maybe[int]], tuple[Union[bool, int], ...]]],
+        max_depth: int,
+        nouns: set[CategoryMeta],
+        verbs: set[CategoryMeta],
+        sample: Maybe[int] = None,
+        min_depth: int = 0,
+        exclude_candidates: set[CategoryMeta] = frozenset()) \
+        -> dict[int, dict[LabeledTree, tuple[Matching, list[Realized]]]]:
+    def choice_fn(leaves: list[CategoryMeta], span_realization: SpanRealization) -> Iterator[Realized]:
+        if sample is None:
+            return get_choices(leaves, span_realization, exclude_candidates)
+        return sample_choices(leaves, span_realization, sample, exclude_candidates)
+
+    def exhaust_tree(_tree: AbsTree) -> tuple[LabeledTree, tuple[Matching, list[Realized]]]:
+        labeled_tree = abstree_to_labeledtree(_tree, nouns, verbs, iter(range(999)), iter(range(999)))
+        realization = labeled_tree_to_realization(labeled_tree, surface_rules, [], [])[1]
+        matching = get_matchings(labeled_tree, matching_rules)
+        surfaces = list(choice_fn(project_tree(labeled_tree), realization[0]))
+        return labeled_tree, (matching, surfaces)
+
+    def exhaust_depth(_depth: int) -> dict[LabeledTree: tuple[Matching, list[Realized]]]:
+        return {k: vs for k, vs in map(exhaust_tree, grammar.generate(terminal, _depth))}
+
+    return {depth: exhaust_depth(depth) for depth in range(min_depth, max_depth)}

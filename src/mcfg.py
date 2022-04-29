@@ -1,13 +1,13 @@
-from typing import Union, TypeVar
+from typing import Union, TypeVar, Iterator, Callable
 from dataclasses import dataclass
-from itertools import product
+from itertools import product, chain
 
 
 class Category:
-    ...
+    surface:        tuple[str, ...]
 
     def __getitem__(self, item: int):
-        ...
+        return self.surface[item]
 
 
 class CategoryMeta(type):
@@ -23,17 +23,23 @@ class CategoryMeta(type):
         def _repr(cls) -> str:
             return f'{name}(surface={str(cls.surface)})'
 
-        def _getitem(cls, idx: int) -> str:
-            return cls.surface[idx]
-
         def _hash(cls) -> int:
-            return hash((name, arity))
+            return hash((type(cls), cls.surface))
+
+        def _eq(cls, other: object) -> bool:
+            return isinstance(other, Category) and hash(cls) == hash(other)
 
         return super().__new__(mcs, name, (Category,), {
-            'arity': arity, '__init__': _init, '__repr__': _repr, '__getitem__': _getitem, '__hash__': _hash})
+            'arity': arity, '__init__': _init, '__repr__': _repr, '__hash__': _hash, '__eq__': _eq})
 
     def __init__(cls, _: str, arity: int = 1):
         super(CategoryMeta, cls).__init__(arity)
+
+    def __hash__(cls) -> int:
+        return hash((str(cls), cls.arity))
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, CategoryMeta) and hash(self) == hash(other)
 
     @property
     def constants(cls: 'CategoryMeta') -> list[Category]:
@@ -42,6 +48,12 @@ class CategoryMeta(type):
     @constants.setter
     def constants(cls, values: list[Union[str, tuple[str, ...]]]) -> None:
         cls._constants = list(map(cls, values)) if cls.arity == 1 else list(map(lambda val: cls(*val), values))
+
+    def __str__(cls) -> str:
+        return cls.__name__
+
+    def __repr__(cls) -> str:
+        return f"'{str(cls)}'"
 
 
 @dataclass(unsafe_hash=True)
@@ -81,23 +93,34 @@ class AbsGrammar:
         self.rules = rules
         self.multiplicity = max(map(lambda rule: rule.multiplicity, rules))
 
-    def generate(self, goal: CategoryMeta, depth: int, filter_empty: bool = True):
-        ret = self.induction([goal], depth + 1)
-        return list(filter(realizable, ret)) if filter_empty else ret
+    def generate(self, goal: CategoryMeta, depth: int, filter_empty: bool = True) -> Iterator[AbsTree]:
+        ret = self.expand_tree(goal, depth)
+        ret = filter(realizable, ret) if filter_empty else ret
+        ret = filter(lambda t: get_depth(t) == depth, ret)
+        return ret
 
-    def induction(self, options: list[AbsTree], depth: int) -> list[AbsTree]:
-        return [] if depth == 0 else options + self.induction(self.expand_options(options), depth - 1)
-
-    def expand_options(self, options: list[AbsTree]) -> list[AbsTree]:
-        return [expand for option in options for expand in self.expand_tree(option)]
-
-    def expand_tree(self, tree: AbsTree) -> list[AbsTree]:
+    def expand_tree(self, tree: AbsTree, depth: int) -> Iterator[AbsTree]:
+        if depth < 0:
+            return
         if isinstance(tree, CategoryMeta):
-            return [(rule.lhs, rule.rhs) for rule in self.applicable(tree)]
-        top, children = tree
-        branch_options = tuple(map(lambda branch: self.expand_tree(branch) + [branch], children))
-        rs = [(top, prod) for prod in product(*branch_options)]
-        return [r for r in rs if r != tree]
+            yield tree
+            for rule in self.applicable(tree):
+                yield from self.expand_tree((tree, rule.rhs), depth - 1)
+        else:
+            root, children = tree
+            options = product(*[list(self.expand_tree(c, depth)) for c in children])
+            yield from ((root, p) for p in options)
 
     def applicable(self, goal: CategoryMeta) -> list[AbsRule]:
         return [rule for rule in self.rules if rule.lhs == goal]
+
+
+def map_tree(tree: Tree[CategoryMeta], f: Callable[[CategoryMeta], T]) -> Tree[T]:
+    if isinstance(tree, CategoryMeta):
+        return f(tree)
+    head, children = tree
+    return f(head), tuple(map(lambda c: map_tree(c, f), children))
+
+
+def get_depth(tree: AbsTree) -> int:
+    return 0 if isinstance(tree, CategoryMeta) else 1 + max([get_depth(c) for c in tree[1]])

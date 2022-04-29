@@ -1,1 +1,4 @@
-from __future__ import annotations
+import os
+
+cwdir = os.path.dirname(__file__)
+
